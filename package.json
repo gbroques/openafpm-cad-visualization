@@ -1,0 +1,20 @@
+{
+  "name": "freecad-web-visualization",
+  "version": "0.1.0-SNAPSHOT",
+  "description": "FreeCAD to .obj to Three.js",
+  "main": "public/index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "G Roques",
+  "license": "LGPL-2.1-or-later",
+  "dependencies": {
+    "three": "^0.125.2"
+  },
+  "devDependencies": {
+    "eslint": "^7.20.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "express": "^4.17.1"
+  }
+}
