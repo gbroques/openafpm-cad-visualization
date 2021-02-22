@@ -4,6 +4,34 @@ import { OrbitControls } from '/jsm/controls/OrbitControls.js';
 import Stats from '/jsm/libs/stats.module.js';
 import { OBJLoader } from '/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from '/jsm/loaders/MTLLoader.js';
+import { GUI } from '/jsm/libs/dat.gui.module.js';
+
+const gui = new GUI();
+
+const windTurbine = {};
+
+const effectController = {
+  Alternator: true,
+  Hub: true,
+  Threads: true,
+  Frame: true,
+};
+
+gui.add(effectController, 'Alternator').onChange((value) => {
+  windTurbine.Alternator.visible = value;
+});
+
+gui.add(effectController, 'Hub').onChange((value) => {
+  windTurbine.Hub.visible = value;
+});
+
+gui.add(effectController, 'Threads').onChange((value) => {
+  windTurbine.Threads.visible = value;
+});
+
+gui.add(effectController, 'Frame').onChange((value) => {
+  windTurbine.Frame.visible = value;
+});
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
@@ -41,6 +69,11 @@ camera.position.set(0, 0, -700);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 scene.add(ambientLight);
+
+// X - Red
+// Y - Green
+// Z - Blue
+scene.add(new THREE.AxesHelper(1000));
 
 // const intensity = 0.5;
 // const distance = 500;
@@ -102,19 +135,27 @@ const resinMaterial = new THREE.MeshPhongMaterial({
   transparent: true,
 });
 
+const Material = {
+  METAL: metalMaterial,
+  RESIN: resinMaterial,
+};
+
+const materialByName = {
+  Frame: Material.METAL,
+  Threads: Material.METAL,
+  Alternator: Material.RESIN,
+  Hub: Material.METAL,
+};
+
 loadObj('wind-turbine.obj').then((object) => {
   console.log('object', object);
   object.position.set(0, 0, 0);
 
-  const frame_mesh = object.getObjectByName('Frame');
-  frame_mesh.material = metalMaterial;
-
-  const thread_mesh = object.getObjectByName('Threads');
-  thread_mesh.material = metalMaterial;
-
-  const alternator_mesh = object.getObjectByName('Alternator');
-  alternator_mesh.material = resinMaterial;
-
+  Object.entries(materialByName).forEach(([name, material]) => {
+    const mesh = object.getObjectByName(name);
+    mesh.material = material;
+    windTurbine[name] = mesh;
+  });
   scene.add(object);
   // fitCameraToObject(camera, object, 1, controls);
   // cube = object;
