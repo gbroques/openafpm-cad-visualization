@@ -10,50 +10,31 @@ const gui = new GUI();
 
 const windTurbine = {};
 
-const effectController = {
-  Alternator: true,
-  Hub: true,
-  Threads: true,
-  Frame: true,
+const partNames = [
+  'Alternator',
+  'Hub',
+  'Threads',
+  'Frame',
+];
+
+const visibilityController = partNames.reduce((acc, name) => (
+  { ...acc, [name]: true }
+), {});
+
+partNames.forEach((name) => {
+  gui.add(visibilityController, name).onChange((value) => {
+    windTurbine[name].visible = value;
+  });
+});
+
+const explosionController = {
+  Explode: 0,
 };
 
-gui.add(effectController, 'Alternator').onChange((value) => {
-  windTurbine.Alternator.visible = value;
-});
-
-gui.add(effectController, 'Hub').onChange((value) => {
-  windTurbine.Hub.visible = value;
-});
-
-gui.add(effectController, 'Threads').onChange((value) => {
-  windTurbine.Threads.visible = value;
-});
-
-gui.add(effectController, 'Frame').onChange((value) => {
-  windTurbine.Frame.visible = value;
-});
+gui.add(explosionController, 'Explode', 0, 100);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
-
-// let cube = null;
-
-// loadMtl('cube.mtl').then((materialCreator) => {
-//   materialCreator.preload();
-//   console.log('materialCreator', materialCreator);
-
-//   Object.values(materialCreator.materials).forEach((material) => {
-//     if (material.opacity === 0) {
-//       material.opacity = 1;
-//     }
-//   });
-//   loadObj('cube.obj', materialCreator).then((object) => {
-//     console.log('object', object);
-//     object.position.set(-5, 0, 0);
-//     scene.add(object);
-//     cube = object;
-//   });
-// }).catch(console.error);
 
 const fieldOfView = 45;
 const aspectRatio = window.innerWidth / window.innerHeight;
@@ -75,26 +56,12 @@ scene.add(ambientLight);
 // Z - Blue
 scene.add(new THREE.AxesHelper(1000));
 
-// const intensity = 0.5;
-// const distance = 500;
-// const decay = 1;
-// const pointLight = new THREE.PointLight(0xffffff, intensity, distance, decay);
-// pointLight.position.set(0, 0, -500);
-// scene.add(pointLight);
-
-// const topLight = new THREE.PointLight(0xffffff, intensity, distance, decay);
-// topLight.position.set(0, 500, 0);
-// scene.add(topLight);
-
-// TODO: restrict zooming in and out
-
 const color = 0xFFFFFF;
 const directionalLightIntensity = 0.15;
-const light = new THREE.DirectionalLight(color, directionalLightIntensity);
-// light.position.set(-1000, 1000, -1000);
-light.target.position.set(0, 0, 0);
-scene.add(light);
-scene.add(light.target);
+const cameraLight = new THREE.DirectionalLight(color, directionalLightIntensity);
+cameraLight.target.position.set(0, 0, 0);
+scene.add(cameraLight);
+scene.add(cameraLight.target);
 
 const sun = new THREE.DirectionalLight(color, 0.1);
 sun.position.set(-1000, 1000, -1000);
@@ -148,7 +115,6 @@ const materialByName = {
 };
 
 loadObj('wind-turbine.obj').then((object) => {
-  console.log('object', object);
   object.position.set(0, 0, 0);
 
   Object.entries(materialByName).forEach(([name, material]) => {
@@ -157,9 +123,7 @@ loadObj('wind-turbine.obj').then((object) => {
     windTurbine[name] = mesh;
   });
   scene.add(object);
-  // fitCameraToObject(camera, object, 1, controls);
-  // cube = object;
-});
+}).catch(console.error);
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -173,19 +137,22 @@ document.body.appendChild(stats.dom);
 
 function animate() {
   requestAnimationFrame(animate);
-  // if (cube) {
-  //   cube.rotation.x += 0.01;
-  //   cube.rotation.y += 0.01;
-  // }
-
   controls.update();
   render();
   stats.update();
 }
 
+let explode = explosionController.Explode;
 function render() {
   renderer.render(scene, camera);
-  light.position.set(camera.position.x, camera.position.y, camera.position.z);
+  cameraLight.position.set(camera.position.x, camera.position.y, camera.position.z);
+  if (Object.keys(windTurbine).length && explode !== explosionController.Explode) {
+    explode = explosionController.Explode;
+    windTurbine.Alternator.position.x = explode * 0;
+    windTurbine.Threads.position.x = explode * -0.5;
+    windTurbine.Hub.position.x = explode * -1;
+    windTurbine.Frame.position.x = explode * -2;
+  }
 }
 
 animate();
@@ -212,44 +179,4 @@ function handleProgress(xhr) {
   const filename = url.pathname.slice(1);
   const progressPercentage = (xhr.loaded / xhr.total) * 100;
   console.log(`index.js: ${filename} ${progressPercentage}% loaded.`);
-}
-
-function fitCameraToObject(camera, object, offset, controls) {
-  offset = offset || 1.25;
-
-  const boundingBox = new THREE.Box3();
-
-  // get bounding box of object - this will be used to setup controls and camera
-  boundingBox.setFromObject(object);
-
-  const center = boundingBox.getCenter();
-
-  const size = boundingBox.getSize();
-
-  // get the max side of the bounding box (fits to width OR height as needed )
-  const maxDim = Math.max(size.x, size.y, size.z);
-  const fov = camera.fov * (Math.PI / 180);
-  let cameraZ = Math.abs(maxDim / 4 * Math.tan(fov * 2));
-
-  cameraZ *= offset; // zoom out a little so that objects don't fill the screen
-
-  camera.position.z = cameraZ;
-
-  const minZ = boundingBox.min.z;
-  const cameraToFarEdge = (minZ < 0) ? -minZ + cameraZ : cameraZ - minZ;
-
-  camera.far = cameraToFarEdge * 3;
-  camera.updateProjectionMatrix();
-
-  if (controls) {
-    // set camera to rotate around center of loaded object
-    controls.target = center;
-
-    // prevent camera from zooming out far enough to create far plane cutoff
-    controls.maxDistance = cameraToFarEdge * 2;
-
-    controls.saveState();
-  } else {
-    camera.lookAt(center);
-  }
 }
