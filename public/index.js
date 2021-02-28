@@ -158,11 +158,12 @@ function render() {
   if (Object.keys(windTurbine).length && explode !== explosionController.Explode) {
     explode = explosionController.Explode;
     windTurbine.StatorResinCast.position.x = explode * 0;
-    windTurbine.BottomRotorResinCast.position.x = explode * 0.25;
-    windTurbine.BottomDisc1.position.x = explode * 0.25;
-    windTurbine.TopRotorResinCast.position.x = explode * -0.25;
-    windTurbine.TopDisc1.position.x = explode * -0.25;
-    windTurbine.Threads.position.x = explode * -0.5;
+    const rotorExlosionFactor = 0.5;
+    windTurbine.BottomRotorResinCast.position.x = explode * rotorExlosionFactor;
+    windTurbine.BottomDisc1.position.x = explode * rotorExlosionFactor;
+    windTurbine.TopRotorResinCast.position.x = explode * -rotorExlosionFactor;
+    windTurbine.TopDisc1.position.x = explode * -rotorExlosionFactor;
+    windTurbine.Threads.position.x = explode * -0.7;
     windTurbine.Hub.position.x = explode * -1;
     windTurbine.Frame.position.x = explode * -2;
   }
