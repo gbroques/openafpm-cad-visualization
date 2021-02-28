@@ -10,24 +10,25 @@ const gui = new GUI();
 
 const windTurbine = {};
 
-const partNames = [
-  'StatorResinCast',
-  'BottomRotorResinCast',
-  'BottomDisc1',
-  'TopRotorResinCast',
-  'TopDisc1',
-  'Hub',
-  'Threads',
-  'Frame',
-];
+const partNamesByVisibilityLabel = {
+  'Stator Resin Cast': ['StatorResinCast'],
+  'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
+  'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
+  Hub: ['Hub'],
+  Threads: ['Threads'],
+  Frame: ['Frame'],
+};
 
-const visibilityController = partNames.reduce((acc, name) => (
-  { ...acc, [name]: true }
+const visibilityLabels = Object.keys(partNamesByVisibilityLabel);
+const visibilityController = visibilityLabels.reduce((acc, visibilityLabel) => (
+  { ...acc, [visibilityLabel]: true }
 ), {});
 
-partNames.forEach((name) => {
-  gui.add(visibilityController, name).onChange((value) => {
-    windTurbine[name].visible = value;
+Object.entries(partNamesByVisibilityLabel).forEach(([visibilityLabel, partNames]) => {
+  gui.add(visibilityController, visibilityLabel).onChange((value) => {
+    partNames.forEach((partName) => {
+      windTurbine[partName].visible = value;
+    });
   });
 });
 
