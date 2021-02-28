@@ -11,7 +11,11 @@ const gui = new GUI();
 const windTurbine = {};
 
 const partNames = [
-  'Alternator',
+  'StatorResinCast',
+  'BottomRotorResinCast',
+  'BottomDisc1',
+  'TopRotorResinCast',
+  'TopDisc1',
   'Hub',
   'Threads',
   'Frame',
@@ -96,8 +100,8 @@ const metalMaterial = new THREE.MeshStandardMaterial({
 });
 
 const resinMaterial = new THREE.MeshPhongMaterial({
-  color: 0x215A53,
-  opacity: 0.97,
+  color: 0x3c8571,
+  opacity: 0.90,
   shininess: 10,
   transparent: true,
 });
@@ -108,10 +112,14 @@ const Material = {
 };
 
 const materialByName = {
+  StatorResinCast: Material.RESIN,
+  BottomRotorResinCast: Material.RESIN,
+  BottomDisc1: Material.METAL,
+  TopRotorResinCast: Material.RESIN,
+  TopDisc1: Material.METAL,
   Frame: Material.METAL,
-  Threads: Material.METAL,
-  Alternator: Material.RESIN,
   Hub: Material.METAL,
+  Threads: Material.METAL,
 };
 
 loadObj('wind-turbine.obj').then((object) => {
@@ -148,7 +156,11 @@ function render() {
   cameraLight.position.set(camera.position.x, camera.position.y, camera.position.z);
   if (Object.keys(windTurbine).length && explode !== explosionController.Explode) {
     explode = explosionController.Explode;
-    windTurbine.Alternator.position.x = explode * 0;
+    windTurbine.StatorResinCast.position.x = explode * 0;
+    windTurbine.BottomRotorResinCast.position.x = explode * 0.25;
+    windTurbine.BottomDisc1.position.x = explode * 0.25;
+    windTurbine.TopRotorResinCast.position.x = explode * -0.25;
+    windTurbine.TopDisc1.position.x = explode * -0.25;
     windTurbine.Threads.position.x = explode * -0.5;
     windTurbine.Hub.position.x = explode * -1;
     windTurbine.Frame.position.x = explode * -2;
