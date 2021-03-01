@@ -92,22 +92,11 @@ function init() {
   controls.maxDistance = 1000;
   controls.minDistance = 250;
 
-  const path = '';
-  const format = '.jpg';
-  const urls = [
-    `${path}px${format}`, `${path}nx${format}`,
-    `${path}py${format}`, `${path}ny${format}`,
-    `${path}pz${format}`, `${path}nz${format}`,
-  ];
-
-  const reflectionCube = new THREE.CubeTextureLoader().load(urls);
-  reflectionCube.encoding = THREE.sRGBEncoding;
-  const metalMaterial = new THREE.MeshStandardMaterial({
-    color: 0xFFFFFF,
-    metalness: 0.8,
-    roughness: 0.5,
-    envMapIntensity: 0.7,
-    envMap: reflectionCube,
+  const metalMaterial = new THREE.MeshPhongMaterial({
+    color: 0xc0c1c8,
+    shininess: 10,
+    specular: 0xeaeaed,
+    reflectivity: 0.5,
   });
 
   const resinMaterial = new THREE.MeshPhongMaterial({
@@ -156,13 +145,12 @@ function init() {
 
 function animate() {
   window.requestAnimationFrame(animate);
-  render();
   controls.update();
   stats.update();
+  render();
 }
 
 function render() {
-  renderer.render(scene, camera);
   cameraLight.position.set(camera.position.x, camera.position.y, camera.position.z);
   if (Object.keys(windTurbine).length) {
     const explode = explosionController.Explode;
@@ -176,6 +164,7 @@ function render() {
     windTurbine.Hub.position.x = explode * -1;
     windTurbine.Frame.position.x = explode * -2;
   }
+  renderer.render(scene, camera);
 }
 
 init();
