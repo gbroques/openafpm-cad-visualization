@@ -33,11 +33,6 @@ function init() {
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
   scene.add(ambientLight);
 
-  // X - Red
-  // Y - Green
-  // Z - Blue
-  scene.add(new THREE.AxesHelper(1000));
-
   const color = 0xFFFFFF;
   const directionalLightIntensity = 0.15;
   cameraLight = new THREE.DirectionalLight(color, directionalLightIntensity);
@@ -107,6 +102,8 @@ function init() {
   }, false);
 
   stats = Stats();
+
+  scene.add(new THREE.AxesHelper(1000));
 
   initGUI();
 
