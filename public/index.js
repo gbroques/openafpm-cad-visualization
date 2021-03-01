@@ -3,7 +3,6 @@ import * as THREE from '/build/three.module.js';
 import { OrbitControls } from '/jsm/controls/OrbitControls.js';
 import Stats from '/jsm/libs/stats.module.js';
 import { OBJLoader } from '/jsm/loaders/OBJLoader.js';
-import { MTLLoader } from '/jsm/loaders/MTLLoader.js';
 import { GUI } from '/jsm/libs/dat.gui.module.js';
 
 let scene;
@@ -184,19 +183,9 @@ function initGUI() {
 init();
 animate();
 
-function loadMtl(name) {
-  return new Promise((resolve, reject) => {
-    const mtlLoader = new MTLLoader();
-    mtlLoader.load(name, resolve, handleProgress, reject);
-  });
-}
-
-function loadObj(name, materials) {
+function loadObj(name) {
   return new Promise((resolve, reject) => {
     const objLoader = new OBJLoader();
-    if (materials) {
-      objLoader.setMaterials(materials);
-    }
     objLoader.load(name, resolve, handleProgress, reject);
   });
 }
