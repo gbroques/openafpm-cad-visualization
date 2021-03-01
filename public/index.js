@@ -100,9 +100,10 @@ function init() {
   });
 
   const resinMaterial = new THREE.MeshPhongMaterial({
-    color: 0x3c8571,
+    color: 0x77aa9c,
     opacity: 0.90,
-    shininess: 10,
+    shininess: 0,
+    reflectivity: 0,
     transparent: true,
   });
 
