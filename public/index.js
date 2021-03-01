@@ -16,38 +16,6 @@ let stats;
 let cameraLight;
 
 function init() {
-  const gui = new GUI();
-
-  windTurbine = {};
-
-  const partNamesByVisibilityLabel = {
-    'Stator Resin Cast': ['StatorResinCast'],
-    'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
-    'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
-    Hub: ['Hub'],
-    Threads: ['Threads'],
-    Frame: ['Frame'],
-  };
-
-  const visibilityLabels = Object.keys(partNamesByVisibilityLabel);
-  const visibilityController = visibilityLabels.reduce((acc, visibilityLabel) => (
-    { ...acc, [visibilityLabel]: true }
-  ), {});
-
-  Object.entries(partNamesByVisibilityLabel).forEach(([visibilityLabel, partNames]) => {
-    gui.add(visibilityController, visibilityLabel).onChange((value) => {
-      partNames.forEach((partName) => {
-        windTurbine[partName].visible = value;
-      });
-    });
-  });
-
-  explosionController = {
-    Explode: 0,
-  };
-
-  gui.add(explosionController, 'Explode', 0, 100);
-
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
 
@@ -86,7 +54,6 @@ function init() {
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.maxDistance = 1000;
@@ -141,6 +108,10 @@ function init() {
   }, false);
 
   stats = Stats();
+
+  initGUI();
+
+  document.body.appendChild(renderer.domElement);
   document.body.appendChild(stats.dom);
 }
 
@@ -166,6 +137,48 @@ function render() {
     windTurbine.Frame.position.x = explode * -2;
   }
   renderer.render(scene, camera);
+}
+
+function initGUI() {
+  const gui = new GUI();
+
+  const partNamesByVisibilityLabel = {
+    'Stator Resin Cast': ['StatorResinCast'],
+    'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
+    'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
+    Hub: ['Hub'],
+    Threads: ['Threads'],
+    Frame: ['Frame'],
+  };
+
+  const visibilityLabels = Object.keys(partNamesByVisibilityLabel);
+  const visibilityController = visibilityLabels.reduce((acc, visibilityLabel) => (
+    { ...acc, [visibilityLabel]: true }
+  ), {});
+
+  windTurbine = {};
+
+  const entries = Object.entries(partNamesByVisibilityLabel);
+  const changeHandlerByVisibilityLabel = entries.reduce((accumulator, entry) => {
+    const [visibilityLabel, partNames] = entry;
+    return {
+      ...accumulator,
+      [visibilityLabel]: (value) => {
+        partNames.forEach((partName) => {
+          windTurbine[partName].visible = value;
+        });
+      },
+    };
+  }, {});
+
+  explosionController = {
+    Explode: 0,
+  };
+
+  Object.entries(changeHandlerByVisibilityLabel).forEach(([visibilityLabel, changeHandler]) => {
+    gui.add(visibilityController, visibilityLabel).onChange(changeHandler);
+  });
+  gui.add(explosionController, 'Explode', 0, 100);
 }
 
 init();
