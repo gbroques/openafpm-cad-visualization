@@ -2,7 +2,7 @@
   "name": "freecad-web-visualization",
   "version": "0.1.0-SNAPSHOT",
   "description": "FreeCAD to .obj to Three.js",
-  "main": "public/index.js",
+  "main": "src/index.js",
   "scripts": {
     "serve": "./node_modules/.bin/http-server public",
     "test": "echo \"Error: no test specified\" && exit 1",
