@@ -14,7 +14,26 @@ let controls;
 let stats;
 let cameraLight;
 
+class Part {
+  constructor(mesh, lineSegments) {
+    this.mesh = mesh;
+    this.lineSegments = lineSegments;
+  }
+
+  set visible(value) {
+    this.mesh.visible = value;
+    this.lineSegments.visible = value;
+  }
+
+  set x(value) {
+    this.mesh.position.x = value;
+    this.lineSegments.position.x = value;
+  }
+}
+
 function init() {
+  windTurbine = {};
+
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
 
@@ -90,7 +109,13 @@ function init() {
     Object.entries(materialByName).forEach(([name, material]) => {
       const mesh = object.getObjectByName(name);
       mesh.material = material;
-      windTurbine[name] = mesh;
+      const edgeGeometry = new THREE.EdgesGeometry(mesh.geometry);
+      const lineSegments = new THREE.LineSegments(
+        edgeGeometry, new THREE.LineBasicMaterial({ color: 0x000000 }),
+      );
+      windTurbine[name] = new Part(mesh, lineSegments);
+
+      scene.add(lineSegments);
     });
     scene.add(object);
   }).catch(console.error);
@@ -105,7 +130,7 @@ function init() {
 
   scene.add(new THREE.AxesHelper(1000));
 
-  initGUI();
+  initGUI(windTurbine);
 
   document.body.appendChild(renderer.domElement);
   document.body.appendChild(stats.dom);
@@ -122,20 +147,20 @@ function render() {
   cameraLight.position.set(camera.position.x, camera.position.y, camera.position.z);
   if (Object.keys(windTurbine).length) {
     const explode = explosionController.Explode;
-    windTurbine.StatorResinCast.position.x = explode * 0;
+    windTurbine.StatorResinCast.x = explode * 0;
     const rotorExlosionFactor = 0.5;
-    windTurbine.BottomRotorResinCast.position.x = explode * rotorExlosionFactor;
-    windTurbine.BottomDisc1.position.x = explode * rotorExlosionFactor;
-    windTurbine.TopRotorResinCast.position.x = explode * -rotorExlosionFactor;
-    windTurbine.TopDisc1.position.x = explode * -rotorExlosionFactor;
-    windTurbine.Threads.position.x = explode * -0.7;
-    windTurbine.Hub.position.x = explode * -1;
-    windTurbine.Frame.position.x = explode * -2;
+    windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
+    windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
+    windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
+    windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
+    windTurbine.Threads.x = explode * -0.7;
+    windTurbine.Hub.x = explode * -1;
+    windTurbine.Frame.x = explode * -2;
   }
   renderer.render(scene, camera);
 }
 
-function initGUI() {
+function initGUI(windTurbine) {
   const gui = new GUI();
 
   const partNamesByVisibilityLabel = {
@@ -151,8 +176,6 @@ function initGUI() {
   const visibilityController = visibilityLabels.reduce((acc, visibilityLabel) => (
     { ...acc, [visibilityLabel]: true }
   ), {});
-
-  windTurbine = {};
 
   const entries = Object.entries(partNamesByVisibilityLabel);
   const changeHandlerByVisibilityLabel = entries.reduce((accumulator, entry) => {
