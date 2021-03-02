@@ -8,7 +8,7 @@ This repository demonstrates one workflow for visualizing 3D models created in [
 
 ![Flow](./flow.png)
 
-## Pre-Requisites
+## Prerequisites
 Install [Node.js](https://nodejs.org/en/).
 
 ## How to Run
@@ -16,8 +16,12 @@ Install [Node.js](https://nodejs.org/en/).
 
        npm install
 
-2. Start server.
+2. (**OPTIONAL**) Build bundle if you want to make changes to files in `src/`.
 
-       npm start
+       npm run watch
 
-3. Navigate to http://127.0.0.1:3000/ in your web browser of choice.
+3. Start server.
+
+       npm run serve
+
+4. Navigate to http://127.0.0.1:8080/ in your web browser of choice. Currently tested in Chrome.

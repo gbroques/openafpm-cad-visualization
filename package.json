@@ -4,8 +4,10 @@
   "description": "FreeCAD to .obj to Three.js",
   "main": "public/index.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "serve": "./node_modules/.bin/http-server public",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "./node_modules/.bin/esbuild src/index.js --bundle --outfile=public/index.js --watch --minify --sourcemap --target=chrome88",
+    "build": "./node_modules/.bin/esbuild src/index.js --bundle --outfile=public/index.js --minify --target=chrome88"
   },
   "author": "G Roques",
   "license": "LGPL-2.1-or-later",
@@ -13,8 +15,9 @@
     "three": "^0.125.2"
   },
   "devDependencies": {
+    "esbuild": "^0.8.54",
     "eslint": "^7.20.0",
     "eslint-config-airbnb": "^18.2.1",
-    "express": "^4.17.1"
+    "http-server": "^0.12.3"
   }
 }
