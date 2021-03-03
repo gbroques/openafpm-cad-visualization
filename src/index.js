@@ -177,7 +177,7 @@ function initGUI(windTurbine) {
     'Stator Resin Cast': ['StatorResinCast'],
     'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
     'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
-    'Rotor Magnet': ['BottomMagnets', 'TopMagnets'],
+    'Rotor Magnets': ['BottomMagnets', 'TopMagnets'],
     Hub: ['Hub'],
     Threads: ['Threads'],
     Frame: ['Frame'],
