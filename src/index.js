@@ -87,17 +87,25 @@ function init() {
     transparent: true,
   });
 
+  const magnetMaterial = new THREE.MeshPhongMaterial({
+    color: 0x625e62,
+    shininess: 10,
+  });
+
   const Material = {
     METAL: metalMaterial,
     RESIN: resinMaterial,
+    MAGNET: magnetMaterial,
   };
 
   const materialByName = {
     StatorResinCast: Material.RESIN,
     BottomRotorResinCast: Material.RESIN,
     BottomDisc1: Material.METAL,
+    BottomMagnets: Material.MAGNET,
     TopRotorResinCast: Material.RESIN,
     TopDisc1: Material.METAL,
+    TopMagnets: Material.MAGNET,
     Frame: Material.METAL,
     Hub: Material.METAL,
     Threads: Material.METAL,
@@ -151,8 +159,10 @@ function render() {
     const rotorExlosionFactor = 0.5;
     windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
     windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
+    windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
     windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
     windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
+    windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
     windTurbine.Threads.x = explode * -0.7;
     windTurbine.Hub.x = explode * -1;
     windTurbine.Frame.x = explode * -2;
@@ -167,6 +177,7 @@ function initGUI(windTurbine) {
     'Stator Resin Cast': ['StatorResinCast'],
     'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
     'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
+    'Rotor Magnet': ['BottomMagnets', 'TopMagnets'],
     Hub: ['Hub'],
     Threads: ['Threads'],
     Frame: ['Frame'],
