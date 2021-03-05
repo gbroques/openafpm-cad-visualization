@@ -79,6 +79,13 @@ function init() {
     reflectivity: 0.5,
   });
 
+  const copperMaterial = new THREE.MeshPhongMaterial({
+    color: 0xB87333,
+    shininess: 30,
+    specular: 0xe3c7ad,
+    reflectivity: 0.5,
+  });
+
   const resinMaterial = new THREE.MeshPhongMaterial({
     color: 0x77aa9c,
     opacity: 0.90,
@@ -94,12 +101,14 @@ function init() {
 
   const Material = {
     METAL: metalMaterial,
+    COPPER: copperMaterial,
     RESIN: resinMaterial,
     MAGNET: magnetMaterial,
   };
 
   const materialByName = {
     StatorResinCast: Material.RESIN,
+    Coils: Material.COPPER,
     BottomRotorResinCast: Material.RESIN,
     BottomDisc1: Material.METAL,
     BottomMagnets: Material.MAGNET,
@@ -155,7 +164,9 @@ function render() {
   cameraLight.position.set(camera.position.x, camera.position.y, camera.position.z);
   if (Object.keys(windTurbine).length) {
     const explode = explosionController.Explode;
-    windTurbine.StatorResinCast.x = explode * 0;
+    const statorExlosionFactor = 0;
+    windTurbine.StatorResinCast.x = explode * statorExlosionFactor;
+    windTurbine.Coils.x = explode * statorExlosionFactor;
     const rotorExlosionFactor = 0.5;
     windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
     windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
@@ -175,6 +186,7 @@ function initGUI(windTurbine) {
 
   const partNamesByVisibilityLabel = {
     'Stator Resin Cast': ['StatorResinCast'],
+    Coils: ['Coils'],
     'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
     'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
     'Rotor Magnets': ['BottomMagnets', 'TopMagnets'],
