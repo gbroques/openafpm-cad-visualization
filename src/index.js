@@ -99,7 +99,11 @@ class OpenAfpmCadVisualization {
       this._animate();
     }).catch(console.error);
 
-    const gui = createGUI(this._windTurbine, this._explosionController);
+    const gui = createGUI(
+      this._orbitControls,
+      this._windTurbine,
+      this._explosionController,
+    );
     this._mount(rootDomElement, gui.domElement);
   }
 
@@ -221,14 +225,14 @@ function createCamera(width, height) {
   const fieldOfView = 45;
   const aspectRatio = width / height;
   const near = 0.1;
-  const far = 2000;
+  const far = 2500;
   const camera = new THREE.PerspectiveCamera(
     fieldOfView,
     aspectRatio,
     near,
     far,
   );
-  camera.position.set(0, 0, -700);
+  camera.position.set(0, 0, -1000);
   return camera;
 }
 
@@ -240,7 +244,7 @@ function createRenderer(width, height) {
 
 function createOrbitControls(camera, domElement) {
   const controls = new OrbitControls(camera, domElement);
-  controls.maxDistance = 1000;
+  controls.maxDistance = 2000;
   controls.minDistance = 250;
   return controls;
 }
@@ -292,8 +296,11 @@ function createMaterialByPartName() {
   };
 }
 
-function createGUI(windTurbine, explosionController) {
+function createGUI(orbitControls, windTurbine, explosionController) {
   const gui = new GUI({ autoPlace: false });
+
+  const obj = { 'Reset View': () => { orbitControls.reset(); } };
+  gui.add(obj, 'Reset View');
 
   const partNamesByVisibilityLabel = {
     'Stator Resin Cast': ['StatorResinCast'],
