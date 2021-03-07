@@ -67,3 +67,7 @@ This method is debounced with a 10 millisecond wait time.
 |`event`|[`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)|`true`|[mousemove event](https://developer.mozilla.org/en-US/docs/Web/API/Element/mousemove_event).|
 
 **Returns:** `undefined`
+
+## Related Repositories
+
+* [openafpm-cad-core](https://github.com/gbroques/openafpm-cad-core)
