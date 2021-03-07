@@ -43,19 +43,16 @@ class OpenAfpmCadVisualization {
       Object.entries(materialByPartName).forEach(([partName, material]) => {
         const mesh = object.getObjectByName(partName);
         mesh.material = material;
-        const edgeGeometry = new THREE.EdgesGeometry(mesh.geometry);
-        const lineSegments = new THREE.LineSegments(
-          edgeGeometry, new THREE.LineBasicMaterial({ color: 0x000000 }),
-        );
+        const lineSegments = createLineSegments(mesh.geometry);
         this._windTurbine[partName] = new Part(mesh, lineSegments);
-
         this._scene.add(lineSegments);
       });
       this._scene.add(object);
       this._animate();
     }).catch(console.error);
 
-    this._mount(rootDomElement);
+    const gui = createGUI(this._windTurbine, this._explosionController);
+    this._mount(rootDomElement, gui.domElement);
   }
 
   resize(width, height) {
@@ -64,9 +61,8 @@ class OpenAfpmCadVisualization {
     this._renderer.setSize(width, height);
   }
 
-  _mount(rootDomElement) {
-    const gui = createGUI(this._windTurbine, this._explosionController);
-    const guiContainer = createGuiContainer(gui);
+  _mount(rootDomElement, guiDomElement) {
+    const guiContainer = createGuiContainer(guiDomElement);
 
     rootDomElement.appendChild(guiContainer);
     rootDomElement.appendChild(this._renderer.domElement);
@@ -106,13 +102,20 @@ class OpenAfpmCadVisualization {
   }
 }
 
-function createGuiContainer(gui) {
+function createLineSegments(meshGeometry) {
+  const edgeGeometry = new THREE.EdgesGeometry(meshGeometry);
+  return new THREE.LineSegments(
+    edgeGeometry, new THREE.LineBasicMaterial({ color: 0x000000 }),
+  );
+}
+
+function createGuiContainer(guiDomElement) {
   const autoPlaceContainer = window.document.createElement('div');
-  const datGuiCssNamespace = gui.domElement.classList[0];
+  const datGuiCssNamespace = guiDomElement.classList[0];
   autoPlaceContainer.classList.add(datGuiCssNamespace);
   autoPlaceContainer.classList.add(GUI.CLASS_AUTO_PLACE_CONTAINER);
-  gui.domElement.classList.add(GUI.CLASS_AUTO_PLACE);
-  autoPlaceContainer.appendChild(gui.domElement);
+  guiDomElement.classList.add(GUI.CLASS_AUTO_PLACE);
+  autoPlaceContainer.appendChild(guiDomElement);
   return autoPlaceContainer;
 }
 
