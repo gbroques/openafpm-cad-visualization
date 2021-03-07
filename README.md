@@ -54,3 +54,16 @@ Resize visualization to specified `width` and `height`.
 |`height`|`number`|`true`|Height to resize visualization to.|
 
 **Returns:** `undefined`
+
+#### handleMouseMove(event)
+Display tooltip if cursor hovers over part and update internal mouse coordinates.
+
+This method is debounced with a 10 millisecond wait time.
+
+##### Arguments
+
+|Name|Type|Required|Description|
+|----|----|--------|-----------|
+|`event`|[`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)|`true`|[mousemove event](https://developer.mozilla.org/en-US/docs/Web/API/Element/mousemove_event).|
+
+**Returns:** `undefined`

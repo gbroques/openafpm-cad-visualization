@@ -7,31 +7,8 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 import Part from './part';
 import Material from './material';
-import CssModuleInjecter from './cssModuleInjecter';
 import debounce from './debounce';
-
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-const CSS_NAMESPACE = 'openafpm';
-
-const styles = {
-  tooltip: {
-    height: 'auto',
-    'font-weight': 'bold',
-    'background-color': 'rgba(0, 0, 0, 0.50)',
-    color: '#fff',
-    'border-radius': '4px',
-    position: 'fixed',
-    padding: '8px 16px 8px 16px',
-    'margin-left': '20px',
-    'margin-top': '20px',
-    '-moz-box-shadow': '3px 3px 5px 6px #ccc',
-    '-webkit-box-shadow': '3px 3px 5px 6px #ccc',
-    'box-shadow': '1px 3px 1px 1px rgba(0, 0, 0, 0.17)',
-    'z-index': '1000',
-  },
-};
+import createTooltip from './tooltip';
 
 class OpenAfpmCadVisualization {
   constructor(options) {
@@ -53,22 +30,11 @@ class OpenAfpmCadVisualization {
     if (DEBUG) {
       this._stats = Stats();
     }
-    const tooltip = createTooltip();
-    this._tooltip = tooltip;
 
-    function handleMouseMove(event) {
-      // calculate mouse position in normalized device coordinates
-      // (-1 to +1) for both components
-      if (tooltip.style.display !== 'none') {
-        tooltip.style.left = `${event.clientX}px`;
-        tooltip.style.top = `${event.clientY}px`;
-      }
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    }
-    const debouncedMouseMove = debounce(handleMouseMove, 10);
-
-    window.addEventListener('mousemove', debouncedMouseMove, false);
+    this._raycaster = new THREE.Raycaster();
+    this._mouse = new THREE.Vector2();
+    this._tooltip = createTooltip();
+    this.handleMouseMove = debounce(this._handleMouseMove, 10);
 
     this._scene = new THREE.Scene();
 
@@ -113,6 +79,15 @@ class OpenAfpmCadVisualization {
     this._renderer.setSize(width, height);
   }
 
+  _handleMouseMove(event) {
+    if (this._tooltip.style.display !== 'none') {
+      this._tooltip.style.left = `${event.clientX}px`;
+      this._tooltip.style.top = `${event.clientY}px`;
+    }
+    this._mouse.x = (event.clientX / this._renderer.domElement.width) * 2 - 1;
+    this._mouse.y = -(event.clientY / this._renderer.domElement.height) * 2 + 1;
+  }
+
   _mount(rootDomElement, guiDomElement) {
     const guiContainer = createGuiContainer(guiDomElement);
 
@@ -139,11 +114,10 @@ class OpenAfpmCadVisualization {
       this._explode();
     }
 
-    raycaster.setFromCamera(mouse, this._camera);
+    this._raycaster.setFromCamera(this._mouse, this._camera);
 
-    // calculate objects intersecting the picking ray
     const parts = this._getVisibleMeshes();
-    const intersects = raycaster.intersectObjects(parts);
+    const intersects = this._raycaster.intersectObjects(parts);
 
     if (!intersects.length) {
       this._tooltip.style.display = 'none';
@@ -194,14 +168,6 @@ class OpenAfpmCadVisualization {
     this._windTurbine.Hub.x = explode * -1;
     this._windTurbine.Frame.x = explode * -2;
   }
-}
-
-function createTooltip() {
-  const cssModuleInjecter = new CssModuleInjecter(CSS_NAMESPACE);
-  const classes = cssModuleInjecter.inject(styles);
-  const tooltip = window.document.createElement('div');
-  tooltip.classList.add(classes.tooltip);
-  return tooltip;
 }
 
 function createLineSegments(meshGeometry) {
