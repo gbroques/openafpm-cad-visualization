@@ -86,28 +86,43 @@ class OpenAfpmCadVisualization {
   }
 
   _render() {
+    this._positionCameraLight();
+    if (this._isWindTurbineLoaded()) {
+      this._explode();
+    }
+    this._renderer.render(this._scene, this._camera);
+  }
+
+  _positionCameraLight() {
     this._cameraLight.position.set(
       this._camera.position.x,
       this._camera.position.y,
       this._camera.position.z,
     );
-    if (Object.keys(this._windTurbine).length) {
-      const explode = this._explosionController.Explode;
-      const statorExlosionFactor = 0;
-      this._windTurbine.StatorResinCast.x = explode * statorExlosionFactor;
-      this._windTurbine.Coils.x = explode * statorExlosionFactor;
-      const rotorExlosionFactor = 0.5;
-      this._windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
-      this._windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
-      this._windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
-      this._windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
-      this._windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
-      this._windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
-      this._windTurbine.Threads.x = explode * -0.7;
-      this._windTurbine.Hub.x = explode * -1;
-      this._windTurbine.Frame.x = explode * -2;
-    }
-    this._renderer.render(this._scene, this._camera);
+  }
+
+  _isWindTurbineLoaded() {
+    return Object.keys(this._windTurbine).length > 0;
+  }
+
+  _explode() {
+    const explode = this._explosionController.Explode;
+
+    const statorExlosionFactor = 0;
+    this._windTurbine.StatorResinCast.x = explode * statorExlosionFactor;
+    this._windTurbine.Coils.x = explode * statorExlosionFactor;
+
+    const rotorExlosionFactor = 0.5;
+    this._windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
+    this._windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
+    this._windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
+    this._windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
+    this._windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
+    this._windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
+
+    this._windTurbine.Threads.x = explode * -0.7;
+    this._windTurbine.Hub.x = explode * -1;
+    this._windTurbine.Frame.x = explode * -2;
   }
 }
 
