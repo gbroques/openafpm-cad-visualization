@@ -1,4 +1,5 @@
-/* eslint-env browser */
+/* eslint-env browser, global DEBUG */
+/* global DEBUG */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
@@ -23,7 +24,9 @@ class OpenAfpmCadVisualization {
 
     const lightByName = createLightByName();
     this._cameraLight = lightByName.cameraLight;
-    this._stats = Stats();
+    if (DEBUG) {
+      this._stats = Stats();
+    }
     this._scene = new THREE.Scene();
 
     const lights = Object.values(lightByName);
@@ -34,8 +37,10 @@ class OpenAfpmCadVisualization {
       }
     });
 
-    const axesHelper = new THREE.AxesHelper(1000);
-    this._scene.add(axesHelper);
+    if (DEBUG) {
+      const axesHelper = new THREE.AxesHelper(1000);
+      this._scene.add(axesHelper);
+    }
 
     const materialByPartName = createMaterialByPartName();
 
@@ -66,12 +71,16 @@ class OpenAfpmCadVisualization {
 
     rootDomElement.appendChild(guiContainer);
     rootDomElement.appendChild(this._renderer.domElement);
-    rootDomElement.appendChild(this._stats.dom);
+    if (DEBUG) {
+      rootDomElement.appendChild(this._stats.dom);
+    }
   }
 
   _animate() {
     this._orbitControls.update();
-    this._stats.update();
+    if (DEBUG) {
+      this._stats.update();
+    }
     this._render();
     window.requestAnimationFrame(() => this._animate());
   }
@@ -244,7 +253,9 @@ function handleProgress(xhr) {
   const url = new URL(xhr.target.responseURL);
   const filename = url.pathname.slice(1);
   const progressPercentage = (xhr.loaded / xhr.total) * 100;
-  console.log(`index.js: ${filename} ${progressPercentage}% loaded.`);
+  if (DEBUG) {
+    console.log(`index.js: ${filename} ${progressPercentage}% loaded.`);
+  }
 }
 
 module.exports = OpenAfpmCadVisualization;
