@@ -37,7 +37,7 @@ Construct a new OpenAFPM CAD visualization instance.
 ##### Arguments
 |Name|Type|Required|Description|
 |----|----|--------|-----------|
-|`options`|`Object`|true|See below table documenting properties.|
+|`options`|`Object`|`true`|See below table documenting properties.|
 |`options.objUrl`|`string`|`true`|URL to load [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file.|
 |`options.rootDomElement`|[`Element`](https://developer.mozilla.org/en-US/docs/Web/API/Element)|`true`|DOM element to mount visualization elements to.|
 |`options.width`|`number`|`true`|Width of visualization.|
