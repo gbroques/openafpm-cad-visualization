@@ -41,13 +41,6 @@ export default class CssModuleInjector {
   }
 }
 
-function fromObjectToCssBlock(object, indentationLevel = 2) {
-  const indentation = [...Array(indentationLevel)].map(() => ' ').join('');
-  return `${Object.entries(object)
-    .map((entry) => indentation + entry.join(': '))
-    .join(';\n')};\n`;
-}
-
 function injectCss(cssContent) {
   const injected = window.document.createElement('style');
   injected.type = 'text/css';
@@ -59,4 +52,11 @@ function injectCss(cssContent) {
     // Unable to inject CSS, probably because of a Content Security Policy.
     console.error(e);
   }
+}
+
+function fromObjectToCssBlock(object, indentationLevel = 2) {
+  const indentation = [...Array(indentationLevel)].map(() => ' ').join('');
+  return `${Object.entries(object)
+    .map((entry) => indentation + entry.join(': '))
+    .join(';\n')};\n`;
 }
