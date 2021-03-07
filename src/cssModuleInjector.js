@@ -3,7 +3,7 @@
 /**
  * Simple implementation of CSS modules.
  */
-export default class CssModuleInjecter {
+export default class CssModuleInjector {
   constructor(namespace) {
     this._namespace = namespace;
   }
