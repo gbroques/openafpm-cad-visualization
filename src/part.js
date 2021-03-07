@@ -12,6 +12,10 @@ export default class Part {
     this.lineSegments.visible = value;
   }
 
+  get visible() {
+    return this.mesh.visible && this.lineSegments.visible;
+  }
+
   set x(value) {
     this.mesh.position.x = value;
     this.lineSegments.position.x = value;

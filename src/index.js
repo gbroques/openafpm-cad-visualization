@@ -1,4 +1,4 @@
-/* eslint-env browser, global DEBUG */
+/* eslint-env browser */
 /* global DEBUG */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -7,6 +7,31 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 import Part from './part';
 import Material from './material';
+import CssModuleInjecter from './cssModuleInjecter';
+import debounce from './debounce';
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+const CSS_NAMESPACE = 'openafpm';
+
+const styles = {
+  tooltip: {
+    height: 'auto',
+    'font-weight': 'bold',
+    'background-color': 'rgba(0, 0, 0, 0.50)',
+    color: '#fff',
+    'border-radius': '4px',
+    position: 'fixed',
+    padding: '8px 16px 8px 16px',
+    'margin-left': '20px',
+    'margin-top': '20px',
+    '-moz-box-shadow': '3px 3px 5px 6px #ccc',
+    '-webkit-box-shadow': '3px 3px 5px 6px #ccc',
+    'box-shadow': '1px 3px 1px 1px rgba(0, 0, 0, 0.17)',
+    'z-index': '1000',
+  },
+};
 
 class OpenAfpmCadVisualization {
   constructor(options) {
@@ -16,6 +41,7 @@ class OpenAfpmCadVisualization {
       width,
       height,
     } = options;
+
     this._camera = createCamera(width, height);
     this._renderer = createRenderer(width, height);
     this._orbitControls = createOrbitControls(this._camera, this._renderer.domElement);
@@ -27,6 +53,23 @@ class OpenAfpmCadVisualization {
     if (DEBUG) {
       this._stats = Stats();
     }
+    const tooltip = createTooltip();
+    this._tooltip = tooltip;
+
+    function handleMouseMove(event) {
+      // calculate mouse position in normalized device coordinates
+      // (-1 to +1) for both components
+      if (tooltip.style.display !== 'none') {
+        tooltip.style.left = `${event.clientX}px`;
+        tooltip.style.top = `${event.clientY}px`;
+      }
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    }
+    const debouncedMouseMove = debounce(handleMouseMove, 10);
+
+    window.addEventListener('mousemove', debouncedMouseMove, false);
+
     this._scene = new THREE.Scene();
 
     const lights = Object.values(lightByName);
@@ -74,6 +117,7 @@ class OpenAfpmCadVisualization {
     if (DEBUG) {
       rootDomElement.appendChild(this._stats.dom);
     }
+    rootDomElement.appendChild(this._tooltip);
   }
 
   _animate() {
@@ -90,7 +134,29 @@ class OpenAfpmCadVisualization {
     if (this._isWindTurbineLoaded()) {
       this._explode();
     }
+
+    raycaster.setFromCamera(mouse, this._camera);
+
+    // calculate objects intersecting the picking ray
+    const parts = this._getVisibleMeshes();
+    const intersects = raycaster.intersectObjects(parts);
+
+    if (!intersects.length) {
+      this._tooltip.style.display = 'none';
+    } else {
+      this._tooltip.style.display = 'block';
+
+      const intersected = intersects[0];
+      const label = separatePascalCaseBySpaces(intersected.object.name);
+      this._tooltip.textContent = label;
+    }
     this._renderer.render(this._scene, this._camera);
+  }
+
+  _getVisibleMeshes() {
+    return Object.values(this._windTurbine)
+      .filter((p) => p.visible)
+      .map((p) => p.mesh);
   }
 
   _positionCameraLight() {
@@ -124,6 +190,14 @@ class OpenAfpmCadVisualization {
     this._windTurbine.Hub.x = explode * -1;
     this._windTurbine.Frame.x = explode * -2;
   }
+}
+
+function createTooltip() {
+  const cssModuleInjecter = new CssModuleInjecter(CSS_NAMESPACE);
+  const classes = cssModuleInjecter.inject(styles);
+  const tooltip = window.document.createElement('div');
+  tooltip.classList.add(classes.tooltip);
+  return tooltip;
 }
 
 function createLineSegments(meshGeometry) {
@@ -271,6 +345,10 @@ function handleProgress(xhr) {
   if (DEBUG) {
     console.log(`index.js: ${filename} ${progressPercentage}% loaded.`);
   }
+}
+
+function separatePascalCaseBySpaces(pascalCaseWord) {
+  return pascalCaseWord.replace(/([A-Z])/g, ' $1').trim();
 }
 
 module.exports = OpenAfpmCadVisualization;
