@@ -9,16 +9,22 @@ import Material from './material';
 
 class OpenAfpmCadVisualization {
   constructor(options) {
-    const { rootDomElement, width, height } = options;
-    this.scene = createScene();
+    const {
+      objUrl,
+      rootDomElement,
+      width,
+      height,
+    } = options;
     this.camera = createCamera(width, height);
     this.renderer = createRenderer(width, height);
     this.orbitControls = createOrbitControls(this.camera, this.renderer.domElement);
-    this.stats = createStats();
     this.windTurbine = {};
     this.explosionController = { Explode: 0 };
+
     const lightByName = createLightByName();
     this.cameraLight = lightByName.cameraLight;
+    this.stats = Stats();
+    this.scene = new THREE.Scene();
 
     const lights = Object.values(lightByName);
     lights.forEach((light) => {
@@ -33,9 +39,7 @@ class OpenAfpmCadVisualization {
 
     const materialByPartName = createMaterialByPartName();
 
-    loadObj('wind-turbine.obj').then((object) => {
-      object.position.set(0, 0, 0);
-
+    loadObj(objUrl).then((object) => {
       Object.entries(materialByPartName).forEach(([partName, material]) => {
         const mesh = object.getObjectByName(partName);
         mesh.material = material;
@@ -112,12 +116,6 @@ function createGuiContainer(gui) {
   return autoPlaceContainer;
 }
 
-function createScene() {
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xffffff);
-  return scene;
-}
-
 function createCamera(width, height) {
   const fieldOfView = 45;
   const aspectRatio = width / height;
@@ -134,7 +132,7 @@ function createCamera(width, height) {
 }
 
 function createRenderer(width, height) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height);
   return renderer;
 }
@@ -144,10 +142,6 @@ function createOrbitControls(camera, domElement) {
   controls.maxDistance = 1000;
   controls.minDistance = 250;
   return controls;
-}
-
-function createStats() {
-  return Stats();
 }
 
 function createLightByName() {
@@ -236,10 +230,10 @@ function createGUI(windTurbine, explosionController) {
   return gui;
 }
 
-function loadObj(name) {
+function loadObj(url) {
   return new Promise((resolve, reject) => {
     const objLoader = new OBJLoader();
-    objLoader.load(name, resolve, handleProgress, reject);
+    objLoader.load(url, resolve, handleProgress, reject);
   });
 }
 
