@@ -2,6 +2,13 @@
     "extends": "airbnb",
     "rules": {
         "no-use-before-define": ["error", "nofunc"],
-        "no-underscore-dangle": ["error", { "enforceInMethodNames": false, "allowAfterThisConstructor": true }]
+        "no-underscore-dangle": [
+                "error",
+                {
+                    "enforceInMethodNames": false,
+                    "allowAfterThisConstructor": true,
+                    "allowAfterThis": true
+                }
+        ]
     }
 }

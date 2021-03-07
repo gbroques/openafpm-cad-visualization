@@ -15,27 +15,27 @@ class OpenAfpmCadVisualization {
       width,
       height,
     } = options;
-    this.camera = createCamera(width, height);
-    this.renderer = createRenderer(width, height);
-    this.orbitControls = createOrbitControls(this.camera, this.renderer.domElement);
-    this.windTurbine = {};
-    this.explosionController = { Explode: 0 };
+    this._camera = createCamera(width, height);
+    this._renderer = createRenderer(width, height);
+    this._orbitControls = createOrbitControls(this._camera, this._renderer.domElement);
+    this._windTurbine = {};
+    this._explosionController = { Explode: 0 };
 
     const lightByName = createLightByName();
-    this.cameraLight = lightByName.cameraLight;
-    this.stats = Stats();
-    this.scene = new THREE.Scene();
+    this._cameraLight = lightByName.cameraLight;
+    this._stats = Stats();
+    this._scene = new THREE.Scene();
 
     const lights = Object.values(lightByName);
     lights.forEach((light) => {
-      this.scene.add(light);
+      this._scene.add(light);
       if (light.target) {
-        this.scene.add(light.target);
+        this._scene.add(light.target);
       }
     });
 
     const axesHelper = new THREE.AxesHelper(1000);
-    this.scene.add(axesHelper);
+    this._scene.add(axesHelper);
 
     const materialByPartName = createMaterialByPartName();
 
@@ -47,62 +47,62 @@ class OpenAfpmCadVisualization {
         const lineSegments = new THREE.LineSegments(
           edgeGeometry, new THREE.LineBasicMaterial({ color: 0x000000 }),
         );
-        this.windTurbine[partName] = new Part(mesh, lineSegments);
+        this._windTurbine[partName] = new Part(mesh, lineSegments);
 
-        this.scene.add(lineSegments);
+        this._scene.add(lineSegments);
       });
-      this.scene.add(object);
-      this.animate();
+      this._scene.add(object);
+      this._animate();
     }).catch(console.error);
 
-    this.mount(rootDomElement);
-  }
-
-  mount(rootDomElement) {
-    const gui = createGUI(this.windTurbine, this.explosionController);
-    const guiContainer = createGuiContainer(gui);
-
-    rootDomElement.appendChild(guiContainer);
-    rootDomElement.appendChild(this.renderer.domElement);
-    rootDomElement.appendChild(this.stats.dom);
-  }
-
-  animate() {
-    this.orbitControls.update();
-    this.stats.update();
-    this.render();
-    window.requestAnimationFrame(() => this.animate());
-  }
-
-  render() {
-    this.cameraLight.position.set(
-      this.camera.position.x,
-      this.camera.position.y,
-      this.camera.position.z,
-    );
-    if (Object.keys(this.windTurbine).length) {
-      const explode = this.explosionController.Explode;
-      const statorExlosionFactor = 0;
-      this.windTurbine.StatorResinCast.x = explode * statorExlosionFactor;
-      this.windTurbine.Coils.x = explode * statorExlosionFactor;
-      const rotorExlosionFactor = 0.5;
-      this.windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
-      this.windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
-      this.windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
-      this.windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
-      this.windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
-      this.windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
-      this.windTurbine.Threads.x = explode * -0.7;
-      this.windTurbine.Hub.x = explode * -1;
-      this.windTurbine.Frame.x = explode * -2;
-    }
-    this.renderer.render(this.scene, this.camera);
+    this._mount(rootDomElement);
   }
 
   resize(width, height) {
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
+    this._camera.aspect = width / height;
+    this._camera.updateProjectionMatrix();
+    this._renderer.setSize(width, height);
+  }
+
+  _mount(rootDomElement) {
+    const gui = createGUI(this._windTurbine, this._explosionController);
+    const guiContainer = createGuiContainer(gui);
+
+    rootDomElement.appendChild(guiContainer);
+    rootDomElement.appendChild(this._renderer.domElement);
+    rootDomElement.appendChild(this._stats.dom);
+  }
+
+  _animate() {
+    this._orbitControls.update();
+    this._stats.update();
+    this._render();
+    window.requestAnimationFrame(() => this._animate());
+  }
+
+  _render() {
+    this._cameraLight.position.set(
+      this._camera.position.x,
+      this._camera.position.y,
+      this._camera.position.z,
+    );
+    if (Object.keys(this._windTurbine).length) {
+      const explode = this._explosionController.Explode;
+      const statorExlosionFactor = 0;
+      this._windTurbine.StatorResinCast.x = explode * statorExlosionFactor;
+      this._windTurbine.Coils.x = explode * statorExlosionFactor;
+      const rotorExlosionFactor = 0.5;
+      this._windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
+      this._windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
+      this._windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
+      this._windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
+      this._windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
+      this._windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
+      this._windTurbine.Threads.x = explode * -0.7;
+      this._windTurbine.Hub.x = explode * -1;
+      this._windTurbine.Frame.x = explode * -2;
+    }
+    this._renderer.render(this._scene, this._camera);
   }
 }
 
