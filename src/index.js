@@ -192,14 +192,14 @@ function createMaterialByPartName() {
     StatorResinCast: Material.RESIN,
     Coils: Material.COPPER,
     BottomRotorResinCast: Material.RESIN,
-    BottomDisc1: Material.METAL,
+    BottomDisc1: Material.STEEL,
     BottomMagnets: Material.MAGNET,
     TopRotorResinCast: Material.RESIN,
-    TopDisc1: Material.METAL,
+    TopDisc1: Material.STEEL,
     TopMagnets: Material.MAGNET,
-    Frame: Material.METAL,
-    Hub: Material.METAL,
-    Threads: Material.METAL,
+    Frame: Material.STEEL,
+    Hub: Material.STEEL,
+    Threads: Material.STEEL,
   };
 }
 

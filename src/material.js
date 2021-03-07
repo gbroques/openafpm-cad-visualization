@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const metalMaterial = new THREE.MeshPhongMaterial({
+const steelMaterial = new THREE.MeshPhongMaterial({
   color: 0xc0c1c8,
   shininess: 10,
   specular: 0xeaeaed,
@@ -28,7 +28,7 @@ const magnetMaterial = new THREE.MeshPhongMaterial({
 });
 
 const Material = {
-  METAL: metalMaterial,
+  STEEL: steelMaterial,
   COPPER: copperMaterial,
   RESIN: resinMaterial,
   MAGNET: magnetMaterial,
