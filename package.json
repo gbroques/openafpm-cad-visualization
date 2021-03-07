@@ -1,13 +1,13 @@
 {
-  "name": "wind-turbine-web-visualization",
+  "name": "openafpm-cad-visualization",
   "version": "0.1.0-SNAPSHOT",
-  "description": "FreeCAD to .obj to Three.js",
-  "main": "src/index.js",
+  "description": "OpenAFPM 3d wind turbine web visualization based on CAD.",
+  "browser": "src/index.js",
   "scripts": {
     "serve": "./node_modules/.bin/http-server public",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "./node_modules/.bin/esbuild src/index.js --bundle --outfile=public/index.js --watch --minify --sourcemap --target=chrome88",
-    "build": "./node_modules/.bin/esbuild src/index.js --bundle --outfile=public/index.js --minify --target=chrome88"
+    "watch": "./node_modules/.bin/esbuild src/index.js --bundle --outfile=public/index.js --global-name=OpenAfpmCadVisualization --watch --minify --sourcemap --target=chrome88",
+    "build": "./node_modules/.bin/esbuild src/index.js --bundle --outfile=public/index.js --global-name=OpenAfpmCadVisualization --minify --target=chrome88"
   },
   "author": "G Roques",
   "license": "LGPL-2.1-or-later",

@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon.ico">
-    <title>Web Visualization</title>
+    <title>OpenAFPM CAD Visualization</title>
     <style>
         body {
             margin: 0;
@@ -13,6 +13,17 @@
     </style>
 </head>
 <body>
-	<script type="module" src="index.js"></script>
+	<script src="index.js"></script>
+    <script>
+        const windTurbineVisualization = new OpenAfpmCadVisualization({
+            rootDomElement: window.document.body,
+            width: window.innerWidth,
+            height: window.innerHeight
+        });
+        const handleResize = () => {
+            windTurbineVisualization.resize(window.innerWidth, window.innerHeight)
+        };
+        window.addEventListener('resize', handleResize);
+    </script>
 </body>
 </html>

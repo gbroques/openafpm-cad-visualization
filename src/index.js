@@ -4,109 +4,185 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+import Part from './part';
+import Material from './material';
 
-let scene;
-let camera;
-let renderer;
-let windTurbine;
-let explosionController;
-let controls;
-let stats;
-let cameraLight;
+class OpenAfpmCadVisualization {
+  constructor(options) {
+    const { rootDomElement, width, height } = options;
+    this.scene = createScene();
+    this.camera = createCamera(width, height);
+    this.renderer = createRenderer(width, height);
+    this.orbitControls = createOrbitControls(this.camera, this.renderer.domElement);
+    this.stats = createStats();
+    this.windTurbine = {};
+    this.explosionController = { Explode: 0 };
+    const lightByName = createLightByName();
+    this.cameraLight = lightByName.cameraLight;
 
-class Part {
-  constructor(mesh, lineSegments) {
-    this.mesh = mesh;
-    this.lineSegments = lineSegments;
+    const lights = Object.values(lightByName);
+    lights.forEach((light) => {
+      this.scene.add(light);
+      if (light.target) {
+        this.scene.add(light.target);
+      }
+    });
+
+    const axesHelper = new THREE.AxesHelper(1000);
+    this.scene.add(axesHelper);
+
+    const materialByPartName = createMaterialByPartName();
+
+    loadObj('wind-turbine.obj').then((object) => {
+      object.position.set(0, 0, 0);
+
+      Object.entries(materialByPartName).forEach(([partName, material]) => {
+        const mesh = object.getObjectByName(partName);
+        mesh.material = material;
+        const edgeGeometry = new THREE.EdgesGeometry(mesh.geometry);
+        const lineSegments = new THREE.LineSegments(
+          edgeGeometry, new THREE.LineBasicMaterial({ color: 0x000000 }),
+        );
+        this.windTurbine[partName] = new Part(mesh, lineSegments);
+
+        this.scene.add(lineSegments);
+      });
+      this.scene.add(object);
+      this.animate();
+    }).catch(console.error);
+
+    this.mount(rootDomElement);
   }
 
-  set visible(value) {
-    this.mesh.visible = value;
-    this.lineSegments.visible = value;
+  mount(rootDomElement) {
+    const gui = createGUI(this.windTurbine, this.explosionController);
+    const guiContainer = createGuiContainer(gui);
+
+    rootDomElement.appendChild(guiContainer);
+    rootDomElement.appendChild(this.renderer.domElement);
+    rootDomElement.appendChild(this.stats.dom);
   }
 
-  set x(value) {
-    this.mesh.position.x = value;
-    this.lineSegments.position.x = value;
+  animate() {
+    this.orbitControls.update();
+    this.stats.update();
+    this.render();
+    window.requestAnimationFrame(() => this.animate());
+  }
+
+  render() {
+    this.cameraLight.position.set(
+      this.camera.position.x,
+      this.camera.position.y,
+      this.camera.position.z,
+    );
+    if (Object.keys(this.windTurbine).length) {
+      const explode = this.explosionController.Explode;
+      const statorExlosionFactor = 0;
+      this.windTurbine.StatorResinCast.x = explode * statorExlosionFactor;
+      this.windTurbine.Coils.x = explode * statorExlosionFactor;
+      const rotorExlosionFactor = 0.5;
+      this.windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
+      this.windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
+      this.windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
+      this.windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
+      this.windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
+      this.windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
+      this.windTurbine.Threads.x = explode * -0.7;
+      this.windTurbine.Hub.x = explode * -1;
+      this.windTurbine.Frame.x = explode * -2;
+    }
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  resize(width, height) {
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height);
   }
 }
 
-function init() {
-  windTurbine = {};
+function createGuiContainer(gui) {
+  const autoPlaceContainer = window.document.createElement('div');
+  const datGuiCssNamespace = gui.domElement.classList[0];
+  autoPlaceContainer.classList.add(datGuiCssNamespace);
+  autoPlaceContainer.classList.add(GUI.CLASS_AUTO_PLACE_CONTAINER);
+  gui.domElement.classList.add(GUI.CLASS_AUTO_PLACE);
+  autoPlaceContainer.appendChild(gui.domElement);
+  return autoPlaceContainer;
+}
 
-  scene = new THREE.Scene();
+function createScene() {
+  const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
+  return scene;
+}
 
+function createCamera(width, height) {
   const fieldOfView = 45;
-  const aspectRatio = window.innerWidth / window.innerHeight;
+  const aspectRatio = width / height;
   const near = 0.1;
   const far = 2000;
-  camera = new THREE.PerspectiveCamera(
+  const camera = new THREE.PerspectiveCamera(
     fieldOfView,
     aspectRatio,
     near,
     far,
   );
   camera.position.set(0, 0, -700);
+  return camera;
+}
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-  scene.add(ambientLight);
+function createRenderer(width, height) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(width, height);
+  return renderer;
+}
 
-  const color = 0xFFFFFF;
-  const directionalLightIntensity = 0.15;
-  cameraLight = new THREE.DirectionalLight(color, directionalLightIntensity);
-  cameraLight.target.position.set(0, 0, 0);
-  scene.add(cameraLight);
-  scene.add(cameraLight.target);
-
-  const sun = new THREE.DirectionalLight(color, 0.1);
-  sun.position.set(-1000, 1000, -1000);
-  sun.target.position.set(0, 0, 0);
-  scene.add(sun);
-  scene.add(sun.target);
-
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  controls = new OrbitControls(camera, renderer.domElement);
+function createOrbitControls(camera, domElement) {
+  const controls = new OrbitControls(camera, domElement);
   controls.maxDistance = 1000;
   controls.minDistance = 250;
+  return controls;
+}
 
-  const metalMaterial = new THREE.MeshPhongMaterial({
-    color: 0xc0c1c8,
-    shininess: 10,
-    specular: 0xeaeaed,
-    reflectivity: 0.5,
-  });
+function createStats() {
+  return Stats();
+}
 
-  const copperMaterial = new THREE.MeshPhongMaterial({
-    color: 0xB87333,
-    shininess: 30,
-    specular: 0xe3c7ad,
-    reflectivity: 0.5,
-  });
-
-  const resinMaterial = new THREE.MeshPhongMaterial({
-    color: 0x77aa9c,
-    opacity: 0.90,
-    shininess: 0,
-    reflectivity: 0,
-    transparent: true,
-  });
-
-  const magnetMaterial = new THREE.MeshPhongMaterial({
-    color: 0x625e62,
-    shininess: 10,
-  });
-
-  const Material = {
-    METAL: metalMaterial,
-    COPPER: copperMaterial,
-    RESIN: resinMaterial,
-    MAGNET: magnetMaterial,
+function createLightByName() {
+  return {
+    cameraLight: createCameraLight(),
+    ambientLight: createAmbientLight(),
+    sunLight: createSunLight(),
   };
+}
 
-  const materialByName = {
+function createCameraLight() {
+  const color = 0xFFFFFF;
+  const directionalLightIntensity = 0.15;
+  const cameraLight = new THREE.DirectionalLight(color, directionalLightIntensity);
+  cameraLight.target.position.set(0, 0, 0);
+  return cameraLight;
+}
+
+function createSunLight() {
+  const color = 0xFFFFFF;
+  const directionalLightIntensity = 0.1;
+  const sunLight = new THREE.DirectionalLight(color, directionalLightIntensity);
+  sunLight.position.set(-1000, 1000, -1000);
+  sunLight.target.position.set(0, 0, 0);
+  return sunLight;
+}
+
+function createAmbientLight() {
+  const color = 0xffffff;
+  const intensity = 0.3;
+  return new THREE.AmbientLight(color, intensity);
+}
+
+function createMaterialByPartName() {
+  return {
     StatorResinCast: Material.RESIN,
     Coils: Material.COPPER,
     BottomRotorResinCast: Material.RESIN,
@@ -119,70 +195,10 @@ function init() {
     Hub: Material.METAL,
     Threads: Material.METAL,
   };
-
-  loadObj('wind-turbine.obj').then((object) => {
-    object.position.set(0, 0, 0);
-
-    Object.entries(materialByName).forEach(([name, material]) => {
-      const mesh = object.getObjectByName(name);
-      mesh.material = material;
-      const edgeGeometry = new THREE.EdgesGeometry(mesh.geometry);
-      const lineSegments = new THREE.LineSegments(
-        edgeGeometry, new THREE.LineBasicMaterial({ color: 0x000000 }),
-      );
-      windTurbine[name] = new Part(mesh, lineSegments);
-
-      scene.add(lineSegments);
-    });
-    scene.add(object);
-  }).catch(console.error);
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }, false);
-
-  stats = Stats();
-
-  scene.add(new THREE.AxesHelper(1000));
-
-  initGUI(windTurbine);
-
-  document.body.appendChild(renderer.domElement);
-  document.body.appendChild(stats.dom);
 }
 
-function animate() {
-  window.requestAnimationFrame(animate);
-  controls.update();
-  stats.update();
-  render();
-}
-
-function render() {
-  cameraLight.position.set(camera.position.x, camera.position.y, camera.position.z);
-  if (Object.keys(windTurbine).length) {
-    const explode = explosionController.Explode;
-    const statorExlosionFactor = 0;
-    windTurbine.StatorResinCast.x = explode * statorExlosionFactor;
-    windTurbine.Coils.x = explode * statorExlosionFactor;
-    const rotorExlosionFactor = 0.5;
-    windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
-    windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
-    windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
-    windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
-    windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
-    windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
-    windTurbine.Threads.x = explode * -0.7;
-    windTurbine.Hub.x = explode * -1;
-    windTurbine.Frame.x = explode * -2;
-  }
-  renderer.render(scene, camera);
-}
-
-function initGUI(windTurbine) {
-  const gui = new GUI();
+function createGUI(windTurbine, explosionController) {
+  const gui = new GUI({ autoPlace: false });
 
   const partNamesByVisibilityLabel = {
     'Stator Resin Cast': ['StatorResinCast'],
@@ -213,18 +229,12 @@ function initGUI(windTurbine) {
     };
   }, {});
 
-  explosionController = {
-    Explode: 0,
-  };
-
   Object.entries(changeHandlerByVisibilityLabel).forEach(([visibilityLabel, changeHandler]) => {
     gui.add(visibilityController, visibilityLabel).onChange(changeHandler);
   });
   gui.add(explosionController, 'Explode', 0, 100);
+  return gui;
 }
-
-init();
-animate();
 
 function loadObj(name) {
   return new Promise((resolve, reject) => {
@@ -239,3 +249,5 @@ function handleProgress(xhr) {
   const progressPercentage = (xhr.loaded / xhr.total) * 100;
   console.log(`index.js: ${filename} ${progressPercentage}% loaded.`);
 }
+
+module.exports = OpenAfpmCadVisualization;
