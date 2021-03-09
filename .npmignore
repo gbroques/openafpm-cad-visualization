@@ -1,0 +1,8 @@
+src/
+public/favicon.ico
+public/index.html
+public/wind-turbine.obj
+.eslintrc
+*.drawio
+*.png
+*.svg
