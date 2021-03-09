@@ -2,7 +2,7 @@
   "name": "openafpm-cad-visualization",
   "version": "0.1.0-SNAPSHOT",
   "description": "OpenAFPM 3d wind turbine web visualization based on CAD.",
-  "browser": "src/index.js",
+  "browser": "public/index.js",
   "scripts": {
     "prepare": "npm run build",
     "serve": "./node_modules/.bin/http-server public",
