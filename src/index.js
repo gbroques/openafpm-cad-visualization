@@ -70,6 +70,7 @@ class OpenAfpmCadVisualization {
       this._windTurbine,
       this._explosionController,
     );
+    this._render();
     this._mount(rootDomElement, gui.domElement);
   }
 
@@ -93,15 +94,14 @@ class OpenAfpmCadVisualization {
   }
 
   _mount(rootDomElement, guiDomElement) {
-    console.log('rootDomElement.getBoundingClientRect()', rootDomElement.getBoundingClientRect());
-    const { height } = rootDomElement.getBoundingClientRect();
+    const { top } = rootDomElement.getBoundingClientRect();
     const guiContainer = createGuiContainer(guiDomElement);
-    guiContainer.style.top = `${height}px`;
+    guiContainer.style.top = `${top}px`;
 
     rootDomElement.appendChild(guiContainer);
     rootDomElement.appendChild(this._renderer.domElement);
     if (DEBUG) {
-      this._stats.dom.style.top = `${height}px`;
+      this._stats.dom.style.top = `${top}px`;
       rootDomElement.appendChild(this._stats.dom);
     }
     rootDomElement.appendChild(this._tooltip);
