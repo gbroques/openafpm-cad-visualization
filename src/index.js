@@ -84,8 +84,12 @@ class OpenAfpmCadVisualization {
       this._tooltip.style.left = `${event.clientX}px`;
       this._tooltip.style.top = `${event.clientY}px`;
     }
-    this._mouse.x = (event.clientX / this._renderer.domElement.width) * 2 - 1;
-    this._mouse.y = -(event.clientY / this._renderer.domElement.height) * 2 + 1;
+
+    const rect = this._renderer.domElement.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    this._mouse.x = (x / this._renderer.domElement.width) * 2 - 1;
+    this._mouse.y = -(y / this._renderer.domElement.height) * 2 + 1;
   }
 
   _mount(rootDomElement, guiDomElement) {
