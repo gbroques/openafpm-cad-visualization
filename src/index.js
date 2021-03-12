@@ -93,11 +93,15 @@ class OpenAfpmCadVisualization {
   }
 
   _mount(rootDomElement, guiDomElement) {
+    console.log('rootDomElement.getBoundingClientRect()', rootDomElement.getBoundingClientRect());
+    const { height } = rootDomElement.getBoundingClientRect();
     const guiContainer = createGuiContainer(guiDomElement);
+    guiContainer.style.top = `${height}px`;
 
     rootDomElement.appendChild(guiContainer);
     rootDomElement.appendChild(this._renderer.domElement);
     if (DEBUG) {
+      this._stats.dom.style.top = `${height}px`;
       rootDomElement.appendChild(this._stats.dom);
     }
     rootDomElement.appendChild(this._tooltip);
