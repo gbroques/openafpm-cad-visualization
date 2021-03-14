@@ -173,8 +173,11 @@ class OpenAfpmCadVisualization {
     this._windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
 
     this._windTurbine.Threads.x = explode * -0.7;
-    this._windTurbine.Hub.x = explode * -1;
-    this._windTurbine.Frame.x = explode * -2;
+    this._windTurbine.RotorSideFlangeCover.x = explode * -1;
+    this._windTurbine.Flange.x = explode * -1.2;
+    this._windTurbine.FrameSideFlangeCover.x = explode * -1.4;
+    this._windTurbine.StubAxleShaft.x = explode * -1.6;
+    this._windTurbine.Frame.x = explode * -2.5;
   }
 }
 
@@ -265,7 +268,10 @@ function createMaterialByPartName() {
     TopDisc1: Material.STEEL,
     TopMagnets: Material.MAGNET,
     Frame: Material.STEEL,
-    Hub: Material.STEEL,
+    Flange: Material.STEEL,
+    RotorSideFlangeCover: Material.STEEL,
+    FrameSideFlangeCover: Material.STEEL,
+    StubAxleShaft: Material.STEEL,
     Threads: Material.STEEL,
   };
 }
@@ -282,7 +288,10 @@ function createGUI(orbitControls, windTurbine, explosionController) {
     'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
     'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
     'Rotor Magnets': ['BottomMagnets', 'TopMagnets'],
-    Hub: ['Hub'],
+    Flange: ['Flange'],
+    'Rotor Side Flange Cover': ['RotorSideFlangeCover'],
+    'Frame Side Flange Cover': ['FrameSideFlangeCover'],
+    'Stub Axle Shaft': ['StubAxleShaft'],
     Threads: ['Threads'],
     Frame: ['Frame'],
   };
