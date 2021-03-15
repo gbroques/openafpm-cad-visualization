@@ -282,19 +282,23 @@ function createGUI(orbitControls, windTurbine, explosionController) {
   const obj = { 'Reset View': () => { orbitControls.reset(); } };
   gui.add(obj, 'Reset View');
 
-  const partNamesByVisibilityLabel = {
+  const guiConfiguration = {
     'Stator Resin Cast': ['StatorResinCast'],
     Coils: ['Coils'],
     'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
     'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
     'Rotor Magnets': ['BottomMagnets', 'TopMagnets'],
-    Flange: ['Flange'],
-    'Rotor Side Flange Cover': ['RotorSideFlangeCover'],
-    'Frame Side Flange Cover': ['FrameSideFlangeCover'],
-    'Stub Axle Shaft': ['StubAxleShaft'],
+    Hub: {
+      Flange: ['Flange'],
+      'Rotor Side Flange Cover': ['RotorSideFlangeCover'],
+      'Frame Side Flange Cover': ['FrameSideFlangeCover'],
+      'Stub Axle Shaft': ['StubAxleShaft'],
+    },
     Threads: ['Threads'],
     Frame: ['Frame'],
   };
+
+  const partNamesByVisibilityLabel = flattenObject(guiConfiguration);
 
   const visibilityLabels = Object.keys(partNamesByVisibilityLabel);
   const visibilityController = visibilityLabels.reduce((acc, visibilityLabel) => (
@@ -313,9 +317,18 @@ function createGUI(orbitControls, windTurbine, explosionController) {
       },
     };
   }, {});
-
-  Object.entries(changeHandlerByVisibilityLabel).forEach(([visibilityLabel, changeHandler]) => {
-    gui.add(visibilityController, visibilityLabel).onChange(changeHandler);
+  Object.entries(guiConfiguration).forEach(([key, value]) => {
+    const changeHandler = changeHandlerByVisibilityLabel[key];
+    if (changeHandler) {
+      gui.add(visibilityController, key).onChange(changeHandler);
+    } else {
+      const subgui = gui.addFolder(key);
+      const subVisibilityLabels = Object.keys(value);
+      subVisibilityLabels.forEach((visibilityLabel) => {
+        const ch = changeHandlerByVisibilityLabel[visibilityLabel];
+        subgui.add(visibilityController, visibilityLabel).onChange(ch);
+      });
+    }
   });
   gui.add(explosionController, 'Explode', 0, 100);
   return gui;
@@ -339,6 +352,20 @@ function handleProgress(xhr) {
 
 function separatePascalCaseBySpaces(pascalCaseWord) {
   return pascalCaseWord.replace(/([A-Z])/g, ' $1').trim();
+}
+
+function flattenObject(object) {
+  return Object.entries(object).reduce((acc, entry) => {
+    const [key, value] = entry;
+    if (!isObject(value)) {
+      return { ...acc, [key]: value };
+    }
+    return { ...acc, ...value };
+  }, {});
+}
+
+function isObject(value) {
+  return typeof value === 'object' && !Array.isArray(value);
 }
 
 module.exports = OpenAfpmCadVisualization;
