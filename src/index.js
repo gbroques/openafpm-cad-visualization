@@ -172,7 +172,7 @@ class OpenAfpmCadVisualization {
     this._windTurbine.TopRotorDisk.x = explode * -rotorExlosionFactor;
     this._windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
 
-    this._windTurbine.Threads.x = explode * -0.7;
+    this._windTurbine.HubThreads.x = explode * -0.7;
     this._windTurbine.RotorSideFlangeCover.x = explode * -1;
     this._windTurbine.Flange.x = explode * -1.2;
     this._windTurbine.FrameSideFlangeCover.x = explode * -1.4;
@@ -272,7 +272,7 @@ function createMaterialByPartName() {
     RotorSideFlangeCover: Material.STEEL,
     FrameSideFlangeCover: Material.STEEL,
     StubAxleShaft: Material.STEEL,
-    Threads: Material.STEEL,
+    HubThreads: Material.STEEL,
   };
 }
 
@@ -294,7 +294,7 @@ function createGUI(orbitControls, windTurbine, explosionController) {
       'Frame Side Flange Cover': ['FrameSideFlangeCover'],
       'Stub Axle Shaft': ['StubAxleShaft'],
     },
-    Threads: ['Threads'],
+    Threads: ['HubThreads'],
     Frame: ['Frame'],
   };
 
