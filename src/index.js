@@ -166,10 +166,10 @@ class OpenAfpmCadVisualization {
 
     const rotorExlosionFactor = 0.5;
     this._windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
-    this._windTurbine.BottomDisc1.x = explode * rotorExlosionFactor;
+    this._windTurbine.BottomRotorDisk.x = explode * rotorExlosionFactor;
     this._windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
     this._windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
-    this._windTurbine.TopDisc1.x = explode * -rotorExlosionFactor;
+    this._windTurbine.TopRotorDisk.x = explode * -rotorExlosionFactor;
     this._windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
 
     this._windTurbine.Threads.x = explode * -0.7;
@@ -262,10 +262,10 @@ function createMaterialByPartName() {
     StatorResinCast: Material.RESIN,
     Coils: Material.COPPER,
     BottomRotorResinCast: Material.RESIN,
-    BottomDisc1: Material.STEEL,
+    BottomRotorDisk: Material.STEEL,
     BottomMagnets: Material.MAGNET,
     TopRotorResinCast: Material.RESIN,
-    TopDisc1: Material.STEEL,
+    TopRotorDisk: Material.STEEL,
     TopMagnets: Material.MAGNET,
     Frame: Material.STEEL,
     Flange: Material.STEEL,
@@ -286,7 +286,7 @@ function createGUI(orbitControls, windTurbine, explosionController) {
     'Stator Resin Cast': ['StatorResinCast'],
     Coils: ['Coils'],
     'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
-    'Rotor Disc': ['BottomDisc1', 'TopDisc1'],
+    'Rotor Disk': ['BottomRotorDisk', 'TopRotorDisk'],
     'Rotor Magnets': ['BottomMagnets', 'TopMagnets'],
     Hub: {
       Flange: ['Flange'],
