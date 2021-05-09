@@ -178,6 +178,7 @@ class OpenAfpmCadVisualization {
     this._windTurbine.FrameSideFlangeCover.x = explode * -1.4;
     this._windTurbine.StubAxleShaft.x = explode * -1.6;
     this._windTurbine.Frame.x = explode * -2.5;
+    this._windTurbine.YawBearing.x = explode * -3.6;
   }
 }
 
