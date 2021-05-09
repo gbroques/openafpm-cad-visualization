@@ -273,6 +273,7 @@ function createMaterialByPartName() {
     FrameSideFlangeCover: Material.STEEL,
     StubAxleShaft: Material.STEEL,
     HubThreads: Material.STEEL,
+    YawBearing: Material.STEEL,
   };
 }
 
@@ -296,6 +297,7 @@ function createGUI(orbitControls, windTurbine, explosionController) {
     },
     Threads: ['HubThreads'],
     Frame: ['Frame'],
+    'Yaw Bearing': ['YawBearing'],
   };
 
   const partNamesByVisibilityLabel = flattenObject(guiConfiguration);
