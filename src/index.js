@@ -179,6 +179,7 @@ class OpenAfpmCadVisualization {
     this._windTurbine.StubAxleShaft.x = explode * -1.6;
     this._windTurbine.Frame.x = explode * -2.5;
     this._windTurbine.YawBearing.x = explode * -3.6;
+    this._windTurbine.TailHinge.x = explode * -3.6;
   }
 }
 
@@ -275,6 +276,7 @@ function createMaterialByPartName() {
     StubAxleShaft: Material.STEEL,
     HubThreads: Material.STEEL,
     YawBearing: Material.STEEL,
+    TailHinge: Material.STEEL,
   };
 }
 
@@ -299,6 +301,7 @@ function createGUI(orbitControls, windTurbine, explosionController) {
     Threads: ['HubThreads'],
     Frame: ['Frame'],
     'Yaw Bearing': ['YawBearing'],
+    'Tail Hinge': ['TailHinge'],
   };
 
   const partNamesByVisibilityLabel = flattenObject(guiConfiguration);
