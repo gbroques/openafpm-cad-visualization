@@ -1,6 +1,6 @@
 # OpenAFPM CAD Visualization
 
-This repository demonstrates one workflow for visualizing 3D models created in [FreeCAD](https://freecadweb.org/https://freecadweb.org/) via a [web browser](https://en.wikipedia.org/wiki/Web_browser).
+Module for visualizing [openafpm-cad-core](https://github.com/gbroques/openafpm-cad-core) 3D wind turbine model created in [FreeCAD](https://freecadweb.org/https://freecadweb.org/) via a [web browser](https://en.wikipedia.org/wiki/Web_browser).
 
 1. Create the 3D model in [FreeCAD](https://freecadweb.org/https://freecadweb.org/).
 2. Export the 3D model to [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) (`.obj`) format.
