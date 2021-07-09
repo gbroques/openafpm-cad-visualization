@@ -26,6 +26,31 @@ Install [Node.js](https://nodejs.org/en/).
 
 4. Navigate to http://127.0.0.1:8080/ in your web browser of choice. Currently tested in Chrome.
 
+## Object Names
+
+A list of object names that **MUST** be present in the `.obj` file.
+
+In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file), object names start with `o` and are delimited with a space on their own line (e.g. `o Coils`). 
+
+1. Coils
+2. StatorResinCast
+3. TopRotorDisk
+4. TopRotorResinCast
+5. TopMagnets
+6. BottomRotorDisk
+7. BottomRotorResinCast
+8. BottomMagnets
+9. Flange
+10. RotorSideFlangeCover
+11. FrameSideFlangeCover
+12. StubAxleShaft
+13. HubThreads
+14. Frame
+15. YawBearing
+16. TailBoom
+17. TailVane
+18. TailHinge
+
 ## API
 
 ### OpenAfpmCadVisualization
