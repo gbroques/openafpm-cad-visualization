@@ -282,7 +282,7 @@ function createMaterialByPartName() {
     YawBearing: Material.STEEL,
     TailHinge: Material.STEEL,
     TailBoom: Material.STEEL,
-    TailVane: Material.STEEL,
+    TailVane: Material.WOOD,
   };
 }
 
@@ -308,7 +308,8 @@ function createGUI(orbitControls, windTurbine, explosionController) {
     Frame: ['Frame'],
     'Yaw Bearing': ['YawBearing'],
     'Tail Hinge': ['TailHinge'],
-    Tail: ['TailBoom', 'TailVane'],
+    'Tail Boom': ['TailBoom'],
+    'Tail Vane': ['TailVane'],
   };
 
   const partNamesByVisibilityLabel = flattenObject(guiConfiguration);

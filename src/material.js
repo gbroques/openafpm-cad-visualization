@@ -27,11 +27,19 @@ const magnetMaterial = new THREE.MeshPhongMaterial({
   shininess: 10,
 });
 
+const woodMaterial = new THREE.MeshPhongMaterial({
+  color: 0xfdc099,
+  shininess: 5,
+  specular: 0xffc198,
+  reflectivity: 0.05,
+});
+
 const Material = {
   STEEL: steelMaterial,
   COPPER: copperMaterial,
   RESIN: resinMaterial,
   MAGNET: magnetMaterial,
+  WOOD: woodMaterial,
 };
 
 export default Material;
