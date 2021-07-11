@@ -178,6 +178,7 @@ class OpenAfpmCadVisualization {
     this._windTurbine.FrameSideFlangeCover.x = explode * -1.4;
     this._windTurbine.StubAxleShaft.x = explode * -1.6;
     this._windTurbine.Frame.x = explode * -2.5;
+    this._windTurbine.StatorMountingStuds.x = explode * -2.8;
 
     const tailExplosionFactor = -3.6;
     this._windTurbine.YawBearing.x = explode * tailExplosionFactor;
@@ -266,6 +267,7 @@ function createAmbientLight() {
 function createMaterialByPartName() {
   return {
     StatorResinCast: Material.RESIN,
+    StatorMountingStuds: Material.STEEL,
     Coils: Material.COPPER,
     BottomRotorResinCast: Material.RESIN,
     BottomRotorDisk: Material.STEEL,
@@ -294,6 +296,7 @@ function createGUI(orbitControls, windTurbine, explosionController) {
 
   const guiConfiguration = {
     'Stator Resin Cast': ['StatorResinCast'],
+    'Stator Mounting Studs': ['StatorMountingStuds'],
     Coils: ['Coils'],
     'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
     'Rotor Disk': ['BottomRotorDisk', 'TopRotorDisk'],

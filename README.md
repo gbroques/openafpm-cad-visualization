@@ -50,6 +50,7 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 16. TailBoom
 17. TailVane
 18. TailHinge
+19. StatorMountingStuds
 
 ## API
 
