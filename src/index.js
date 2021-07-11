@@ -177,14 +177,15 @@ class OpenAfpmCadVisualization {
     this._windTurbine.Flange.x = explode * -1.2;
     this._windTurbine.FrameSideFlangeCover.x = explode * -1.4;
     this._windTurbine.StubAxleShaft.x = explode * -1.6;
-    this._windTurbine.Frame.x = explode * -2.5;
-    this._windTurbine.StatorMountingStuds.x = explode * -2.8;
 
-    const tailExplosionFactor = -3.6;
-    this._windTurbine.YawBearing.x = explode * tailExplosionFactor;
-    this._windTurbine.TailHinge.x = explode * tailExplosionFactor;
-    this._windTurbine.TailBoom.x = explode * tailExplosionFactor;
-    this._windTurbine.TailVane.x = explode * tailExplosionFactor;
+    const frameExplosionFactor = -2.5;
+    this._windTurbine.Frame.x = explode * frameExplosionFactor;
+    this._windTurbine.StatorMountingStuds.x = explode * frameExplosionFactor;
+
+    this._windTurbine.YawBearing.x = explode * -3.2;
+    this._windTurbine.TailHinge.x = explode * -3.4;
+    this._windTurbine.TailBoom.x = explode * -3.6;
+    this._windTurbine.TailVane.x = explode * -3.8;
   }
 }
 
@@ -296,7 +297,7 @@ function createGUI(orbitControls, windTurbine, explosionController) {
 
   const guiConfiguration = {
     'Stator Resin Cast': ['StatorResinCast'],
-    'Stator Mounting Studs': ['StatorMountingStuds'],
+    Studs: ['StatorMountingStuds'],
     Coils: ['Coils'],
     'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
     'Rotor Disk': ['BottomRotorDisk', 'TopRotorDisk'],
