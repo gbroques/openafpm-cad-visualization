@@ -13,6 +13,8 @@
             font-size: 16px;
         }
         header {
+            display: flex;
+            justify-content: space-between;
             background-color: #43A047;
             color: white;
             font-weight: bold;
@@ -24,24 +26,39 @@
 <body>
     <header>
         OpenAFPM CAD Visualization
+        <select name="variant">
+            <option value="t-shape.obj">T Shape</option>
+            <option value="h-shape.obj">H Shape</option>
+            <option value="star-shape.obj">Star Shape</option>
+        </select>
     </header>
     <div id="container"></div>
 	<script src="openafpm-cad-visualization.js"></script>
     <script>
         const header = document.getElementsByTagName('header')[0];
         const headerHeight = header.offsetHeight;
-        const windTurbineVisualization = new OpenAfpmCadVisualization({
-            objUrl: 'wind-turbine.obj',
-            rootDomElement: document.getElementById('container'),
-            width: window.innerWidth,
-            height: window.innerHeight - headerHeight,
+        function loadTurbine(objUrl) {
+            const windTurbineVisualization = new OpenAfpmCadVisualization({
+                objUrl,
+                rootDomElement: document.getElementById('container'),
+                width: window.innerWidth,
+                height: window.innerHeight - headerHeight,
+            });
+            window.addEventListener('resize', () => {
+                windTurbineVisualization.resize(window.innerWidth, window.innerHeight - headerHeight)
+            }, false);
+            window.addEventListener('mousemove', (e) => {
+                windTurbineVisualization.handleMouseMove(e)
+            }, false);
+        }
+        loadTurbine('t-shape.obj')
+        const select = document.getElementsByTagName('select')[0];
+        select.addEventListener('change', event => {
+            const selectedObjUrl = event.target.value;
+            const container = document.getElementById('container');
+            container.innerHTML = '';
+            loadTurbine(selectedObjUrl);
         });
-        window.addEventListener('resize', () => {
-            windTurbineVisualization.resize(window.innerWidth, window.innerHeight - headerHeight)
-        }, false);
-        window.addEventListener('mousemove', (e) => {
-            windTurbineVisualization.handleMouseMove(e)
-        }, false);
     </script>
 </body>
 </html>
