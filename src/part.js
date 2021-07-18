@@ -16,6 +16,18 @@ export default class Part {
     return this.mesh.visible && this.lineSegments.visible;
   }
 
+  get x() {
+    return this.mesh.position.x;
+  }
+
+  get y() {
+    return this.mesh.position.y;
+  }
+
+  get z() {
+    return this.mesh.position.z;
+  }
+
   set x(value) {
     this.mesh.position.x = value;
     this.lineSegments.position.x = value;

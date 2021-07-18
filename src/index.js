@@ -10,6 +10,8 @@ import Material from './material';
 import debounce from './debounce';
 import createTooltip from './tooltip';
 
+const DEFAULT_ORBIT_CONTROLS_X = -1100;
+
 class OpenAfpmCadVisualization {
   constructor(options) {
     const {
@@ -184,10 +186,10 @@ class OpenAfpmCadVisualization {
     this._explodeX('Frame', frameExplosionFactor);
     this._explodeX('StatorMountingStuds', frameExplosionFactor);
 
-    this._explodeX('YawBearing', -3.2);
-    this._explodeX('TailHinge', -3.4);
-    this._explodeX('TailBoom', -3.6);
-    this._explodeX('TailVane', -3.8);
+    this._explodeX('YawBearing', -3.4);
+    this._explodeX('TailHinge', -4.3);
+    this._explodeX('TailBoom', -5);
+    this._explodeX('TailVane', -7);
   }
 
   _explodeX(property, explosionFactor) {
@@ -216,17 +218,17 @@ function createGuiContainer(guiDomElement) {
 }
 
 function createCamera(width, height) {
-  const fieldOfView = 45;
+  const fieldOfView = 55;
   const aspectRatio = width / height;
   const near = 0.1;
-  const far = 2500;
+  const far = 8000;
   const camera = new THREE.PerspectiveCamera(
     fieldOfView,
     aspectRatio,
     near,
     far,
   );
-  camera.position.set(0, 0, -1000);
+  camera.position.set(1000, 150, -2000);
   return camera;
 }
 
@@ -238,8 +240,9 @@ function createRenderer(width, height) {
 
 function createOrbitControls(camera, domElement) {
   const controls = new OrbitControls(camera, domElement);
-  controls.maxDistance = 2000;
+  controls.maxDistance = 5000;
   controls.minDistance = 250;
+  controls.target.set(DEFAULT_ORBIT_CONTROLS_X, 0, 0);
   return controls;
 }
 
@@ -300,8 +303,14 @@ function createMaterialByPartName() {
 
 function createGUI(orbitControls, windTurbine, explosionController) {
   const gui = new GUI({ autoPlace: false });
+  gui.closed = true;
 
-  const obj = { 'Reset View': () => { orbitControls.reset(); } };
+  const obj = {
+    'Reset View': () => {
+      orbitControls.reset();
+      orbitControls.target.set(DEFAULT_ORBIT_CONTROLS_X, 0, 0);
+    },
+  };
   gui.add(obj, 'Reset View');
 
   const guiConfiguration = {
