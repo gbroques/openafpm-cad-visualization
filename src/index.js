@@ -56,10 +56,14 @@ class OpenAfpmCadVisualization {
     loadObj(objUrl).then((object) => {
       Object.entries(materialByPartName).forEach(([partName, material]) => {
         const mesh = object.getObjectByName(partName);
-        mesh.material = material;
-        const lineSegments = createLineSegments(mesh.geometry);
-        this._windTurbine[partName] = new Part(mesh, lineSegments);
-        this._scene.add(lineSegments);
+        if (mesh) {
+          mesh.material = material;
+          const lineSegments = createLineSegments(mesh.geometry);
+          this._windTurbine[partName] = new Part(mesh, lineSegments);
+          this._scene.add(lineSegments);
+        } else {
+          console.warn(`"${partName}" not found in OBJ file.`);
+        }
       });
       this._scene.add(object);
       this._animate();
@@ -158,34 +162,39 @@ class OpenAfpmCadVisualization {
   }
 
   _explode() {
-    const explode = this._explosionController.Explode;
-
     const statorExlosionFactor = 0;
-    this._windTurbine.StatorResinCast.x = explode * statorExlosionFactor;
-    this._windTurbine.Coils.x = explode * statorExlosionFactor;
+    this._explodeX('StatorResinCast', statorExlosionFactor);
+    this._explodeX('Coils', statorExlosionFactor);
 
     const rotorExlosionFactor = 0.5;
-    this._windTurbine.BottomRotorResinCast.x = explode * rotorExlosionFactor;
-    this._windTurbine.BottomRotorDisk.x = explode * rotorExlosionFactor;
-    this._windTurbine.BottomMagnets.x = explode * rotorExlosionFactor;
-    this._windTurbine.TopRotorResinCast.x = explode * -rotorExlosionFactor;
-    this._windTurbine.TopRotorDisk.x = explode * -rotorExlosionFactor;
-    this._windTurbine.TopMagnets.x = explode * -rotorExlosionFactor;
+    this._explodeX('BottomRotorResinCast', rotorExlosionFactor);
+    this._explodeX('BottomRotorDisk', rotorExlosionFactor);
+    this._explodeX('BottomMagnets', rotorExlosionFactor);
+    this._explodeX('TopRotorResinCast', -rotorExlosionFactor);
+    this._explodeX('TopRotorDisk', -rotorExlosionFactor);
+    this._explodeX('TopMagnets', -rotorExlosionFactor);
 
-    this._windTurbine.HubThreads.x = explode * -0.7;
-    this._windTurbine.RotorSideFlangeCover.x = explode * -1;
-    this._windTurbine.Flange.x = explode * -1.2;
-    this._windTurbine.FrameSideFlangeCover.x = explode * -1.4;
-    this._windTurbine.StubAxleShaft.x = explode * -1.6;
+    this._explodeX('HubThreads', -0.7);
+    this._explodeX('RotorSideFlangeCover', -1);
+    this._explodeX('Flange', -1.2);
+    this._explodeX('FrameSideFlangeCover', -1.4);
+    this._explodeX('StubAxleShaft', -1.6);
 
     const frameExplosionFactor = -2.5;
-    this._windTurbine.Frame.x = explode * frameExplosionFactor;
-    this._windTurbine.StatorMountingStuds.x = explode * frameExplosionFactor;
+    this._explodeX('Frame', frameExplosionFactor);
+    this._explodeX('StatorMountingStuds', frameExplosionFactor);
 
-    this._windTurbine.YawBearing.x = explode * -3.2;
-    this._windTurbine.TailHinge.x = explode * -3.4;
-    this._windTurbine.TailBoom.x = explode * -3.6;
-    this._windTurbine.TailVane.x = explode * -3.8;
+    this._explodeX('YawBearing', -3.2);
+    this._explodeX('TailHinge', -3.4);
+    this._explodeX('TailBoom', -3.6);
+    this._explodeX('TailVane', -3.8);
+  }
+
+  _explodeX(property, explosionFactor) {
+    const explode = this._explosionController.Explode;
+    if (this._windTurbine[property]) {
+      this._windTurbine[property].x = explode * explosionFactor;
+    }
   }
 }
 
