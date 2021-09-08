@@ -8,7 +8,8 @@
     "serve": "./node_modules/.bin/http-server public",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "./node_modules/.bin/esbuild src/index.js --define:DEBUG=true --bundle --outfile=public/openafpm-cad-visualization.js --global-name=OpenAfpmCadVisualization --watch --minify --sourcemap --target=chrome88",
-    "build": "./node_modules/.bin/esbuild src/index.js --define:DEBUG=false --bundle --outfile=public/openafpm-cad-visualization.js --global-name=OpenAfpmCadVisualization --minify --sourcemap --target=chrome88"
+    "build": "./node_modules/.bin/esbuild src/index.js --define:DEBUG=false --bundle --outfile=public/openafpm-cad-visualization.js --global-name=OpenAfpmCadVisualization --minify --sourcemap --target=chrome88",
+    "start": "npm run serve & npm run watch"
   },
   "author": "G Roques",
   "license": "LGPL-2.1-or-later",

@@ -26,6 +26,8 @@ Install [Node.js](https://nodejs.org/en/).
 
 4. Navigate to http://127.0.0.1:8080/ in your web browser of choice. Currently tested in Chrome.
 
+Additionally, on UNIX-like operating systems, you can run `npm start`; which runs `npm run watch` and `npm run serve` in parallel.
+
 ## Object Names
 
 A list of object names that **MUST** be present in the `.obj` file.
