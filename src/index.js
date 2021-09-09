@@ -352,8 +352,11 @@ function createGUI(orbitControls, windTurbine, visibleMeshes, explosionControlle
       [visibilityLabel]: (value) => {
         partNames.forEach((partName) => {
           const part = windTurbine[partName];
+          const index = part.children.findIndex((c) => c.type === 'Mesh');
+          if (index < 0) {
+            console.warn(`No mesh found for part '${partName}'`);
+          }
           part.visible = value;
-          const index = part.children.indexOf((c) => c.name.endsWith('Mesh'));
           if (value) {
             visibleMeshes.push(part.children[index]);
           } else {
