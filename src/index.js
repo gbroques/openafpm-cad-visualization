@@ -59,48 +59,20 @@ class OpenAfpmCadVisualization {
 
     const materialByPartName = createMaterialByPartName();
 
-    loadObj(objUrl).then((object) => {
-      const wireMaterial = createWireMaterial(width, height);
-      Object.entries(materialByPartName).forEach(([partName, material]) => {
-        const mesh = object.getObjectByName(partName);
-        if (mesh) {
-          /**
-           * EdgeSplitModifier combine vertices,
-           * so that smoothing normals can be generated WITHOUT removing hard edges of model.
-           * {@link https://threejs.org/examples/?q=edgesplit#webgl_modifier_edgesplit}
-           * {@link https://github.com/mrdoob/three.js/pull/20535}
-           */
-          const edgeSplitModifier = new EdgeSplitModifier();
-          const cutOffAngle = 20 * (Math.PI / 180);
-          mesh.geometry = edgeSplitModifier.modify(
-            mesh.geometry,
-            cutOffAngle,
-          );
-          mesh.material = material;
-          mesh.name = `${mesh.name}Mesh`;
+    const groupWiresTogether = makeGroupWiresTogether(width, height);
 
-          const numberOfWires = findNumberOfWires(object, partName);
-          const wireMeshes = [...Array(numberOfWires).keys()].map((n) => {
-            const importedWireMesh = object.getObjectByName(`${partName}Wire${n}`);
-            return createWireMesh(importedWireMesh, wireMaterial);
-          });
-          const wireMeshGroup = wireMeshes.reduce((group, wireMesh) => {
-            group.add(wireMesh);
-            return group;
-          }, new THREE.Group());
-          wireMeshGroup.name = `${partName}WireGroup`;
-          const part = new THREE.Group();
-          part.add(mesh);
-          part.add(wireMeshGroup);
-          part.name = partName;
-          this._windTurbine[partName] = part;
+    loadObj(objUrl)
+      .then(groupWiresTogether)
+      .then((parts) => {
+        parts.forEach((part) => {
+          const material = materialByPartName[part.name];
+          const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
+          mesh.material = material;
           this._scene.add(part);
-        } else {
-          console.warn(`"${partName}" not found in OBJ file.`);
-        }
-      });
-      this._animate();
-    }).catch(console.error);
+          this._windTurbine[part.name] = part;
+        });
+        this._animate();
+      }).catch(console.error);
 
     const gui = createGUI(
       this._orbitControls,
@@ -162,10 +134,8 @@ class OpenAfpmCadVisualization {
     this._raycaster.setFromCamera(this._mouse, this._camera);
 
     const parts = this._getVisibleMeshes();
-    // console.log('parts', intersects);
     const recursive = true;
     const intersects = this._raycaster.intersectObjects(parts, recursive);
-    // console.log('intersects', intersects);
 
     if (!intersects.length) {
       this._tooltip.style.display = 'none';
@@ -481,6 +451,55 @@ function findOldestAncestor(object) {
     return findOldestAncestor(object.parent);
   }
   return object;
+}
+
+function makeGroupWiresTogether(width, height) {
+  const wireMaterial = createWireMaterial(width, height);
+  return (object) => {
+    const meshes = findMeshes(object);
+    return meshes.map((importedMesh) => {
+      const mesh = createMesh(importedMesh);
+      mesh.name = `${importedMesh.name}Mesh`;
+
+      const numberOfWires = findNumberOfWires(object, importedMesh.name);
+      const wireMeshes = [...Array(numberOfWires).keys()].map((n) => {
+        const importedWireMesh = object.getObjectByName(`${importedMesh.name}Wire${n}`);
+        return createWireMesh(importedWireMesh, wireMaterial);
+      });
+      const wireMeshGroup = wireMeshes.reduce((group, wireMesh) => {
+        group.add(wireMesh);
+        return group;
+      }, new THREE.Group());
+      wireMeshGroup.name = `${importedMesh.name}WireGroup`;
+
+      const part = new THREE.Group();
+      part.add(mesh);
+      part.add(wireMeshGroup);
+      part.name = importedMesh.name;
+      return part;
+    });
+  };
+}
+
+/**
+ * EdgeSplitModifier combine vertices,
+ * so that smoothing normals can be generated WITHOUT removing hard edges of model.
+ * {@link https://threejs.org/examples/?q=edgesplit#webgl_modifier_edgesplit}
+ * {@link https://github.com/mrdoob/three.js/pull/20535}
+ */
+function createMesh(importedMesh) {
+  const edgeSplitModifier = new EdgeSplitModifier();
+  const cutOffAngle = 20 * (Math.PI / 180);
+  const edgeSplitGeometry = edgeSplitModifier.modify(
+    importedMesh.geometry,
+    cutOffAngle,
+  );
+  return new THREE.Mesh(edgeSplitGeometry, importedMesh.material);
+}
+
+function findMeshes(object) {
+  const wirePattern = /Wire[0-9]+$/;
+  return object.children.filter((child) => !wirePattern.test(child.name));
 }
 
 module.exports = OpenAfpmCadVisualization;
