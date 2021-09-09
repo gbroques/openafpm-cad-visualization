@@ -13,6 +13,7 @@ import Material from './material';
 import debounce from './debounce';
 import createTooltip from './tooltip';
 import flattenObject from './flattenObject';
+import createLoadingScreen from './loading';
 
 const DEFAULT_ORBIT_CONTROLS_X = -1100;
 
@@ -64,28 +65,37 @@ class OpenAfpmCadVisualization {
 
     const groupWiresTogether = makeGroupWiresTogether(width, height);
 
+    const opacityDuration = 200; // in milliseconds
+    const loadingScreen = createLoadingScreen(opacityDuration);
+    rootDomElement.appendChild(loadingScreen);
     loadObj(objUrl)
       .then(groupWiresTogether)
       .then((parts) => {
-        parts.forEach((part) => {
-          const material = materialByPartName[part.name];
-          const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
-          this._visibleMeshes.push(mesh);
-          mesh.material = material;
-          this._scene.add(part);
-          this._windTurbine[part.name] = part;
-        });
-        this._animate();
+        loadingScreen.style.opacity = 0;
+        setTimeout(() => {
+          rootDomElement.removeChild(loadingScreen);
+          const container = createAppContainer(opacityDuration);
+          parts.forEach((part) => {
+            const material = materialByPartName[part.name];
+            const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
+            this._visibleMeshes.push(mesh);
+            mesh.material = material;
+            this._scene.add(part);
+            this._windTurbine[part.name] = part;
+          });
+          const gui = createGUI(
+            this._orbitControls,
+            this._windTurbine,
+            this._visibleMeshes,
+            this._explosionController,
+          );
+          // Must append container to root DOM element before this._mount()
+          rootDomElement.appendChild(container);
+          this._mount(container, gui.domElement);
+          container.style.opacity = '1';
+          this._animate();
+        }, opacityDuration);
       }).catch(console.error);
-
-    const gui = createGUI(
-      this._orbitControls,
-      this._windTurbine,
-      this._visibleMeshes,
-      this._explosionController,
-    );
-    this._render();
-    this._mount(rootDomElement, gui.domElement);
   }
 
   resize(width, height) {
@@ -404,6 +414,12 @@ function handleProgress(xhr) {
 
 function separatePascalCaseBySpaces(pascalCaseWord) {
   return pascalCaseWord.replace(/([A-Z])/g, ' $1').trim();
+}
+
+function createAppContainer(opacityDuration) {
+  const container = window.document.createElement('div');
+  container.style = `opacity: 0; transition: opacity ${opacityDuration}ms ease-in-out;`;
+  return container;
 }
 
 module.exports = OpenAfpmCadVisualization;
