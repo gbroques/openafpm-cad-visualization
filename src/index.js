@@ -120,7 +120,17 @@ class OpenAfpmCadVisualization {
       this._stats.update();
     }
     this._render();
-    window.requestAnimationFrame(() => this._animate());
+    this._animationFrameRequestId = window.requestAnimationFrame(() => this._animate());
+  }
+
+  cleanUp() {
+    this._scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.material.dispose();
+        object.geometry.dispose();
+      }
+    });
+    window.cancelAnimationFrame(this._animationFrameRequestId);
   }
 
   _render() {

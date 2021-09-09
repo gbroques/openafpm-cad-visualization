@@ -62,6 +62,7 @@
             return () => {
                 window.removeEventListener('resize', handleResize);
                 window.removeEventListener('mousemove', handleMouseMove);
+                windTurbineVisualization.cleanUp();
             };
         }
         let cleanUp = loadTurbine('t-shape.obj')

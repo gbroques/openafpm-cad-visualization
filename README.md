@@ -96,6 +96,13 @@ This method is debounced with a 10 millisecond wait time.
 
 **Returns:** `undefined`
 
+#### cleanUp()
+Performs various clean-up such as:
+* [disposing geometries and materials](https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects)
+* [cancelling the animation frame callback](https://developer.mozilla.org/en-US/docs/Web/API/Window/cancelAnimationFrame)
+
+**Returns:** `undefined`
+
 ## Related Repositories
 
 * [openafpm-cad-core](https://github.com/gbroques/openafpm-cad-core)
