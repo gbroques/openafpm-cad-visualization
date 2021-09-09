@@ -37,7 +37,9 @@ class OpenAfpmCadVisualization {
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
     this._tooltip = createTooltip();
-    this.handleMouseMove = debounce(this._handleMouseMove, 10);
+    this.handleMouseMove = debounce(this._handleMouseMove, 15);
+    // Use mutable array to keep track of visible meshes for tooltip performance.
+    this._visibleMeshes = [];
 
     this._scene = new THREE.Scene();
 
@@ -65,6 +67,7 @@ class OpenAfpmCadVisualization {
         parts.forEach((part) => {
           const material = materialByPartName[part.name];
           const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
+          this._visibleMeshes.push(mesh);
           mesh.material = material;
           this._scene.add(part);
           this._windTurbine[part.name] = part;
@@ -75,6 +78,7 @@ class OpenAfpmCadVisualization {
     const gui = createGUI(
       this._orbitControls,
       this._windTurbine,
+      this._visibleMeshes,
       this._explosionController,
     );
     this._render();
@@ -141,9 +145,8 @@ class OpenAfpmCadVisualization {
 
     this._raycaster.setFromCamera(this._mouse, this._camera);
 
-    const parts = this._getVisibleMeshes();
-    const recursive = true;
-    const intersects = this._raycaster.intersectObjects(parts, recursive);
+    const recursive = false;
+    const intersects = this._raycaster.intersectObjects(this._visibleMeshes, recursive);
 
     if (!intersects.length) {
       this._tooltip.style.display = 'none';
@@ -152,16 +155,10 @@ class OpenAfpmCadVisualization {
 
       const intersected = intersects[0];
 
-      const oldestAncestor = findOldestAncestor(intersected.object);
-      const label = separatePascalCaseBySpaces(oldestAncestor.name);
+      const label = separatePascalCaseBySpaces(intersected.object.parent.name);
       this._tooltip.textContent = label;
     }
     this._renderer.render(this._scene, this._camera);
-  }
-
-  _getVisibleMeshes() {
-    return Object.values(this._windTurbine)
-      .filter((p) => p.visible);
   }
 
   _positionCameraLight() {
@@ -307,7 +304,7 @@ function createMaterialByPartName() {
   };
 }
 
-function createGUI(orbitControls, windTurbine, explosionController) {
+function createGUI(orbitControls, windTurbine, visibleMeshes, explosionController) {
   const gui = new GUI({ autoPlace: false });
   gui.closed = true;
 
@@ -354,7 +351,14 @@ function createGUI(orbitControls, windTurbine, explosionController) {
       ...accumulator,
       [visibilityLabel]: (value) => {
         partNames.forEach((partName) => {
-          windTurbine[partName].visible = value;
+          const part = windTurbine[partName];
+          part.visible = value;
+          const index = part.children.indexOf((c) => c.name.endsWith('Mesh'));
+          if (value) {
+            visibleMeshes.push(part.children[index]);
+          } else {
+            visibleMeshes.splice(index, 1);
+          }
         });
       },
     };
@@ -394,13 +398,6 @@ function handleProgress(xhr) {
 
 function separatePascalCaseBySpaces(pascalCaseWord) {
   return pascalCaseWord.replace(/([A-Z])/g, ' $1').trim();
-}
-
-function findOldestAncestor(object) {
-  if (object.parent && object.parent.type !== 'Scene') {
-    return findOldestAncestor(object.parent);
-  }
-  return object;
 }
 
 module.exports = OpenAfpmCadVisualization;
