@@ -9,7 +9,6 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 import { Line2 } from 'three/examples/jsm/lines/Line2';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
-import Part from './part';
 import Material from './material';
 import debounce from './debounce';
 import createTooltip from './tooltip';
@@ -78,6 +77,7 @@ class OpenAfpmCadVisualization {
             cutOffAngle,
           );
           mesh.material = material;
+          mesh.name = `${mesh.name}Mesh`;
 
           const numberOfWires = findNumberOfWires(object, partName);
           const wireMeshes = [...Array(numberOfWires).keys()].map((n) => {
@@ -88,9 +88,13 @@ class OpenAfpmCadVisualization {
             group.add(wireMesh);
             return group;
           }, new THREE.Group());
-          this._windTurbine[partName] = new Part(mesh, wireMeshGroup);
-          this._scene.add(mesh);
-          this._scene.add(wireMeshGroup);
+          wireMeshGroup.name = `${partName}WireGroup`;
+          const part = new THREE.Group();
+          part.add(mesh);
+          part.add(wireMeshGroup);
+          part.name = partName;
+          this._windTurbine[partName] = part;
+          this._scene.add(part);
         } else {
           console.warn(`"${partName}" not found in OBJ file.`);
         }
@@ -158,7 +162,10 @@ class OpenAfpmCadVisualization {
     this._raycaster.setFromCamera(this._mouse, this._camera);
 
     const parts = this._getVisibleMeshes();
-    const intersects = this._raycaster.intersectObjects(parts);
+    // console.log('parts', intersects);
+    const recursive = true;
+    const intersects = this._raycaster.intersectObjects(parts, recursive);
+    // console.log('intersects', intersects);
 
     if (!intersects.length) {
       this._tooltip.style.display = 'none';
@@ -166,7 +173,9 @@ class OpenAfpmCadVisualization {
       this._tooltip.style.display = 'block';
 
       const intersected = intersects[0];
-      const label = separatePascalCaseBySpaces(intersected.object.name);
+
+      const oldestAncestor = findOldestAncestor(intersected.object);
+      const label = separatePascalCaseBySpaces(oldestAncestor.name);
       this._tooltip.textContent = label;
     }
     this._renderer.render(this._scene, this._camera);
@@ -174,8 +183,7 @@ class OpenAfpmCadVisualization {
 
   _getVisibleMeshes() {
     return Object.values(this._windTurbine)
-      .filter((p) => p.visible)
-      .map((p) => p.mesh);
+      .filter((p) => p.visible);
   }
 
   _positionCameraLight() {
@@ -222,7 +230,7 @@ class OpenAfpmCadVisualization {
   _explodeX(property, explosionFactor) {
     const explode = this._explosionController.Explode;
     if (this._windTurbine[property]) {
-      this._windTurbine[property].x = explode * explosionFactor;
+      this._windTurbine[property].position.x = explode * explosionFactor;
     }
   }
 }
@@ -466,6 +474,13 @@ function createWireMaterial(width, height) {
 
 function findNumberOfWires(object, name) {
   return object.children.filter((child) => child.name.startsWith(`${name}Wire`)).length;
+}
+
+function findOldestAncestor(object) {
+  if (object.parent && object.parent.type !== 'Scene') {
+    return findOldestAncestor(object.parent);
+  }
+  return object;
 }
 
 module.exports = OpenAfpmCadVisualization;
