@@ -9,6 +9,7 @@ import makeGroupWiresTogether from './makeGroupWiresTogether';
 import Material from './material';
 import debounce from './debounce';
 import createTooltip from './tooltip';
+import flattenObject from './flattenObject';
 
 const DEFAULT_ORBIT_CONTROLS_X = -1100;
 
@@ -383,20 +384,6 @@ function handleProgress(xhr) {
 
 function separatePascalCaseBySpaces(pascalCaseWord) {
   return pascalCaseWord.replace(/([A-Z])/g, ' $1').trim();
-}
-
-function flattenObject(object) {
-  return Object.entries(object).reduce((acc, entry) => {
-    const [key, value] = entry;
-    if (!isObject(value)) {
-      return { ...acc, [key]: value };
-    }
-    return { ...acc, ...value };
-  }, {});
-}
-
-function isObject(value) {
-  return typeof value === 'object' && !Array.isArray(value);
 }
 
 function findOldestAncestor(object) {
