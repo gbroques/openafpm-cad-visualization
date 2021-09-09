@@ -14,6 +14,11 @@ function createLoadingScreen(opacityDuration) {
   return container;
 }
 
+/**
+ * Propeller icon.
+ * By Francesca Bonaccorsi, Italy.
+ * {@link https://thenounproject.com/term/propeller/77747/}
+ */
 function createSpinner() {
   const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const spinnerClass = 'spinner';
