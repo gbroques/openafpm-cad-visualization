@@ -2,18 +2,20 @@
  * Represents a part in a larger assembly.
  */
 export default class Part {
-  constructor(mesh, lineSegments) {
+  constructor(mesh, wire = null) {
     this.mesh = mesh;
-    this.lineSegments = lineSegments;
+    this.wire = wire;
   }
 
   set visible(value) {
     this.mesh.visible = value;
-    this.lineSegments.visible = value;
+    if (this.wire) {
+      this.wire.visible = value;
+    }
   }
 
   get visible() {
-    return this.mesh.visible && this.lineSegments.visible;
+    return this.mesh.visible;
   }
 
   get x() {
@@ -29,17 +31,21 @@ export default class Part {
   }
 
   set x(value) {
-    this.mesh.position.x = value;
-    this.lineSegments.position.x = value;
+    this._setPosition('x', value);
   }
 
   set y(value) {
-    this.mesh.position.y = value;
-    this.lineSegments.position.y = value;
+    this._setPosition('y', value);
   }
 
   set z(value) {
-    this.mesh.position.z = value;
-    this.lineSegments.position.z = value;
+    this._setPosition('z', value);
+  }
+
+  _setPosition(axis, value) {
+    this.mesh.position[axis] = value;
+    if (this.wire) {
+      this.wire.position[axis] = value;
+    }
   }
 }

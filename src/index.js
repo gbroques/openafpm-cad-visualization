@@ -4,7 +4,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { EdgeSplitModifier } from 'three/examples/jsm/modifiers/EdgeSplitModifier';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+import { Line2 } from 'three/examples/jsm/lines/Line2';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import Part from './part';
 import Material from './material';
 import debounce from './debounce';
@@ -50,24 +54,47 @@ class OpenAfpmCadVisualization {
 
     if (DEBUG) {
       const axesHelper = new THREE.AxesHelper(1000);
+      axesHelper.name = 'Axes';
       this._scene.add(axesHelper);
     }
 
     const materialByPartName = createMaterialByPartName();
 
     loadObj(objUrl).then((object) => {
+      const wireMaterial = createWireMaterial(width, height);
       Object.entries(materialByPartName).forEach(([partName, material]) => {
         const mesh = object.getObjectByName(partName);
         if (mesh) {
+          /**
+           * EdgeSplitModifier combine vertices,
+           * so that smoothing normals can be generated WITHOUT removing hard edges of model.
+           * {@link https://threejs.org/examples/?q=edgesplit#webgl_modifier_edgesplit}
+           * {@link https://github.com/mrdoob/three.js/pull/20535}
+           */
+          const edgeSplitModifier = new EdgeSplitModifier();
+          const cutOffAngle = 20 * (Math.PI / 180);
+          mesh.geometry = edgeSplitModifier.modify(
+            mesh.geometry,
+            cutOffAngle,
+          );
           mesh.material = material;
-          const lineSegments = createLineSegments(mesh.geometry);
-          this._windTurbine[partName] = new Part(mesh, lineSegments);
-          this._scene.add(lineSegments);
+
+          const numberOfWires = findNumberOfWires(object, partName);
+          const wireMeshes = [...Array(numberOfWires).keys()].map((n) => {
+            const importedWireMesh = object.getObjectByName(`${partName}Wire${n}`);
+            return createWireMesh(importedWireMesh, wireMaterial);
+          });
+          const wireMeshGroup = wireMeshes.reduce((group, wireMesh) => {
+            group.add(wireMesh);
+            return group;
+          }, new THREE.Group());
+          this._windTurbine[partName] = new Part(mesh, wireMeshGroup);
+          this._scene.add(mesh);
+          this._scene.add(wireMeshGroup);
         } else {
           console.warn(`"${partName}" not found in OBJ file.`);
         }
       });
-      this._scene.add(object);
       this._animate();
     }).catch(console.error);
 
@@ -198,13 +225,6 @@ class OpenAfpmCadVisualization {
       this._windTurbine[property].x = explode * explosionFactor;
     }
   }
-}
-
-function createLineSegments(meshGeometry) {
-  const edgeGeometry = new THREE.EdgesGeometry(meshGeometry);
-  return new THREE.LineSegments(
-    edgeGeometry, new THREE.LineBasicMaterial({ color: 0x000000 }),
-  );
 }
 
 function createGuiContainer(guiDomElement) {
@@ -402,6 +422,50 @@ function flattenObject(object) {
 
 function isObject(value) {
   return typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Create wire mesh.
+ *
+ * WebGL cannot render lines wider than 1px due to browser limitations.
+ * Thus, Line2 used.
+ * {@link https://threejs.org/examples/?q=fat#webgl_lines_fat}
+ * {@link https://jsfiddle.net/brLk6aud/1/}
+ *
+ */
+function createWireMesh(importedMesh, material) {
+  const importedPositions = importedMesh.geometry.attributes.position.array;
+  const geometry = createWireGeometry(importedPositions);
+
+  const mesh = new Line2(geometry, material);
+  mesh.name = importedMesh.name;
+  return mesh;
+}
+
+function createWireGeometry(positions) {
+  const geometry = new LineGeometry();
+  geometry.setPositions(positions);
+  return geometry;
+}
+
+/**
+ * {@link https://github.com/mrdoob/three.js/blob/r132/examples/jsm/lines/LineMaterial.js}
+ */
+function createWireMaterial(width, height) {
+  const material = new LineMaterial({
+    color: 0x000000,
+    linewidth: 1.5, // in pixels
+    dashed: false,
+    dashScale: 3,
+    dashSize: 1,
+    gapSize: 1,
+  });
+  material.resolution.set(width, height);
+  return material;
+}
+
+function findNumberOfWires(object, name) {
+  return object.children.filter((child) => child.name.startsWith(`${name}Wire`)).length;
 }
 
 module.exports = OpenAfpmCadVisualization;
