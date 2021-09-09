@@ -1,5 +1,8 @@
 /* eslint-env browser */
 /* global DEBUG */
+// TODO: Remove global debug variable in order to reduce coupling with esbuild
+//       and make code more flexible. debug can be passed in options.
+//       Should this be named development?
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
