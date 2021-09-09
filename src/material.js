@@ -1,21 +1,21 @@
 import * as THREE from 'three';
 
 const steelMaterial = new THREE.MeshPhongMaterial({
-  color: 0xc0c1c8,
+  color: 0xC0C1C8,
   shininess: 10,
-  specular: 0xeaeaed,
+  specular: 0xEAEAED,
   reflectivity: 0.5,
 });
 
 const copperMaterial = new THREE.MeshPhongMaterial({
   color: 0xB87333,
   shininess: 30,
-  specular: 0xe3c7ad,
+  specular: 0xE3C7AD,
   reflectivity: 0.5,
 });
 
 const resinMaterial = new THREE.MeshPhongMaterial({
-  color: 0x77aa9c,
+  color: 0x77AA9C,
   opacity: 0.90,
   shininess: 0,
   reflectivity: 0,
@@ -23,14 +23,14 @@ const resinMaterial = new THREE.MeshPhongMaterial({
 });
 
 const magnetMaterial = new THREE.MeshPhongMaterial({
-  color: 0x625e62,
+  color: 0x625E62,
   shininess: 10,
 });
 
 const woodMaterial = new THREE.MeshPhongMaterial({
-  color: 0xfdc099,
+  color: 0xFDC099,
   shininess: 5,
-  specular: 0xffc198,
+  specular: 0xFFC198,
   reflectivity: 0.05,
 });
 

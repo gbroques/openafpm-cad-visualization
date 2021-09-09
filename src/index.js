@@ -268,7 +268,7 @@ function createSunLight() {
 }
 
 function createAmbientLight() {
-  const color = 0xffffff;
+  const color = 0xFFFFFF;
   const intensity = 0.3;
   return new THREE.AmbientLight(color, intensity);
 }
