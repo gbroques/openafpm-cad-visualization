@@ -365,15 +365,21 @@ function createGUI(orbitControls, windTurbine, visibleMeshes, explosionControlle
       [visibilityLabel]: (value) => {
         partNames.forEach((partName) => {
           const part = windTurbine[partName];
-          const index = part.children.findIndex((c) => c.type === 'Mesh');
-          if (index < 0) {
-            console.warn(`No mesh found for part '${partName}'`);
-          }
           part.visible = value;
           if (value) {
-            visibleMeshes.push(part.children[index]);
+            const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
+            if (!mesh) {
+              console.warn(`No mesh found for part '${partName}'`);
+            } else {
+              visibleMeshes.push(mesh);
+            }
           } else {
-            visibleMeshes.splice(index, 1);
+            const index = visibleMeshes.findIndex((m) => m.name === `${partName}Mesh`);
+            if (index < 0) {
+              console.warn(`No mesh found for part '${partName}'`);
+            } else {
+              visibleMeshes.splice(index, 1);
+            }
           }
         });
       },
