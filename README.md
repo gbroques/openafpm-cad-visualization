@@ -63,6 +63,7 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 Construct a new OpenAFPM CAD visualization instance.
 
 ##### Arguments
+
 |Name|Type|Required|Description|
 |----|----|--------|-----------|
 |`options`|`Object`|`true`|See below rows documenting properties.|
