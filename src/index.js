@@ -66,7 +66,7 @@ class OpenAfpmCadVisualization {
     const groupWiresTogether = makeGroupWiresTogether(width, height);
 
     const opacityDuration = 200; // in milliseconds
-    const loadingScreen = createLoadingScreen(opacityDuration);
+    const loadingScreen = createLoadingScreen(opacityDuration, height);
     rootDomElement.appendChild(loadingScreen);
     loadObj(objUrl)
       .then(groupWiresTogether)

@@ -1,7 +1,12 @@
 /* eslint-env browser */
-function createLoadingScreen(opacityDuration) {
+function createLoadingScreen(opacityDuration, windowHeight) {
   const container = window.document.createElement('div');
-  container.style = `position: absolute; top: 45%; left: 50%; opacity: 1; transition: opacity ${opacityDuration}ms ease-in-out;`;
+  container.style = `
+  text-align: center;
+  padding-top: calc(${windowHeight}px * 0.45);
+  opacity: 1;
+  transition: opacity ${opacityDuration}ms ease-in-out;
+  `;
 
   const spinner = createSpinner();
   container.appendChild(spinner);
