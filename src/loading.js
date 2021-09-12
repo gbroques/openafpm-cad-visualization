@@ -1,18 +1,33 @@
 /* eslint-env browser */
-function createLoadingScreen(opacityDuration, windowHeight) {
+function createLoadingScreen(
+  opacityDuration,
+  windowHeight,
+  color = '#323232',
+) {
   const container = window.document.createElement('div');
   container.style = `
-  text-align: center;
-  padding-top: calc(${windowHeight}px * 0.45);
+  height: ${windowHeight}px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   opacity: 1;
   transition: opacity ${opacityDuration}ms ease-in-out;
   `;
 
-  const spinner = createSpinner();
+  const spinner = createSpinner(color);
   container.appendChild(spinner);
 
   const p = window.document.createElement('p');
-  p.style = 'font-weight: bold; margin: 0; margin-top: 16px; color:rgba(0, 0, 0, 0.80); font-size: 0.875rem; line-height: 1.5;';
+  p.style = `
+  font-weight: bold;
+  margin: 0;
+  margin-top: 16px;
+  color: ${color};
+  font-size: 0.875rem;
+  line-height: 1.5;';
+  `;
   p.textContent = 'LOADING';
   container.appendChild(p);
 
@@ -24,12 +39,11 @@ function createLoadingScreen(opacityDuration, windowHeight) {
  * By Francesca Bonaccorsi, Italy.
  * {@link https://thenounproject.com/term/propeller/77747/}
  */
-function createSpinner() {
+function createSpinner(fill) {
   const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const spinnerClass = 'spinner';
   svg.setAttribute('viewBox', '0 0 90 90');
-  svg.setAttribute('fill-opacity', '0.80');
-  svg.setAttribute('fill', '#000000');
+  svg.setAttribute('fill', fill);
   svg.setAttribute('class', spinnerClass);
 
   const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style');
