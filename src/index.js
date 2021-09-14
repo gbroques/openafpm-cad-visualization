@@ -5,7 +5,6 @@
 //       Should this be named development?
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import Stats from 'three/examples/jsm/libs/stats.module';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 import makeGroupWiresTogether from './makeGroupWiresTogether';
@@ -28,15 +27,15 @@ class OpenAfpmCadVisualization {
 
     this._camera = createCamera(width, height);
     this._renderer = createRenderer(width, height);
-    this._orbitControls = createOrbitControls(this._camera, this._renderer.domElement);
+    this._orbitControls = createOrbitControls(
+      this._camera,
+      this._renderer.domElement,
+      () => this._render(),
+    );
     this._windTurbine = {};
     this._explosionController = { Explode: 0 };
 
     const lightByName = createLightByName();
-    this._cameraLight = lightByName.cameraLight;
-    if (DEBUG) {
-      this._stats = Stats();
-    }
 
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
@@ -51,7 +50,15 @@ class OpenAfpmCadVisualization {
     lights.forEach((light) => {
       this._scene.add(light);
       if (light.target) {
+        light.target.name = `${light.name}Target`;
+        light.target.updateMatrixWorld();
         this._scene.add(light.target);
+      }
+      if (DEBUG && light.type === 'DirectionalLight') {
+        const lightHelper = new THREE.DirectionalLightHelper(
+          light, 100, 0x000000,
+        );
+        this._scene.add(lightHelper);
       }
     });
 
@@ -83,17 +90,20 @@ class OpenAfpmCadVisualization {
             this._scene.add(part);
             this._windTurbine[part.name] = part;
           });
+          const handleExplode = debounce(() => this._render(), 5);
           const gui = createGUI(
             this._orbitControls,
             this._windTurbine,
             this._visibleMeshes,
             this._explosionController,
+            handleExplode,
           );
           // Must append container to root DOM element before this._mount()
           rootDomElement.appendChild(container);
           this._mount(container, gui.domElement);
           container.style.opacity = '1';
-          this._animate();
+          this._orbitControls.update();
+          this._render();
         }, opacityDuration);
       }).catch(console.error);
   }
@@ -101,7 +111,9 @@ class OpenAfpmCadVisualization {
   resize(width, height) {
     this._camera.aspect = width / height;
     this._camera.updateProjectionMatrix();
+    this._orbitControls.update();
     this._renderer.setSize(width, height);
+    this._render();
   }
 
   _handleMouseMove(event) {
@@ -115,46 +127,6 @@ class OpenAfpmCadVisualization {
     const y = event.clientY - rect.top;
     this._mouse.x = (x / this._renderer.domElement.width) * 2 - 1;
     this._mouse.y = -(y / this._renderer.domElement.height) * 2 + 1;
-  }
-
-  _mount(rootDomElement, guiDomElement) {
-    const { top } = rootDomElement.getBoundingClientRect();
-    const guiContainer = createGuiContainer(guiDomElement);
-    guiContainer.style.top = `${top}px`;
-
-    rootDomElement.appendChild(guiContainer);
-    rootDomElement.appendChild(this._renderer.domElement);
-    if (DEBUG) {
-      this._stats.dom.style.top = `${top}px`;
-      rootDomElement.appendChild(this._stats.dom);
-    }
-    rootDomElement.appendChild(this._tooltip);
-  }
-
-  _animate() {
-    this._orbitControls.update();
-    if (DEBUG) {
-      this._stats.update();
-    }
-    this._render();
-    this._animationFrameRequestId = window.requestAnimationFrame(() => this._animate());
-  }
-
-  cleanUp() {
-    this._scene.traverse((object) => {
-      if (object instanceof THREE.Mesh) {
-        object.material.dispose();
-        object.geometry.dispose();
-      }
-    });
-    window.cancelAnimationFrame(this._animationFrameRequestId);
-  }
-
-  _render() {
-    this._positionCameraLight();
-    if (this._isWindTurbineLoaded()) {
-      this._explode();
-    }
 
     this._raycaster.setFromCamera(this._mouse, this._camera);
 
@@ -171,15 +143,39 @@ class OpenAfpmCadVisualization {
       const label = separatePascalCaseBySpaces(intersected.object.parent.name);
       this._tooltip.textContent = label;
     }
-    this._renderer.render(this._scene, this._camera);
   }
 
-  _positionCameraLight() {
-    this._cameraLight.position.set(
-      this._camera.position.x,
-      this._camera.position.y,
-      this._camera.position.z,
-    );
+  _mount(rootDomElement, guiDomElement) {
+    const { top } = rootDomElement.getBoundingClientRect();
+    const guiContainer = createGuiContainer(guiDomElement);
+    guiContainer.style.top = `${top}px`;
+
+    rootDomElement.appendChild(guiContainer);
+    rootDomElement.appendChild(this._renderer.domElement);
+    rootDomElement.appendChild(this._tooltip);
+  }
+
+  _animate() {
+    this._orbitControls.update();
+    this._render();
+    this._animationFrameRequestId = window.requestAnimationFrame(() => this._animate());
+  }
+
+  cleanUp() {
+    this._scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.material.dispose();
+        object.geometry.dispose();
+      }
+    });
+    window.cancelAnimationFrame(this._animationFrameRequestId);
+  }
+
+  _render() {
+    if (this._isWindTurbineLoaded()) {
+      this._explode();
+    }
+    this._renderer.render(this._scene, this._camera);
   }
 
   _isWindTurbineLoaded() {
@@ -254,42 +250,46 @@ function createRenderer(width, height) {
   return renderer;
 }
 
-function createOrbitControls(camera, domElement) {
+function createOrbitControls(camera, domElement, onChange) {
   const controls = new OrbitControls(camera, domElement);
   controls.maxDistance = 5000;
   controls.minDistance = 250;
   controls.target.set(DEFAULT_ORBIT_CONTROLS_X, 0, 0);
+  controls.addEventListener('change', onChange);
   return controls;
 }
 
 function createLightByName() {
   return {
-    cameraLight: createCameraLight(),
     ambientLight: createAmbientLight(),
-    sunLight: createSunLight(),
+    frontLight: createFrontLight(),
+    backLight: createBackLight(),
   };
 }
 
-function createCameraLight() {
-  const color = 0xFFFFFF;
-  const directionalLightIntensity = 0.15;
-  const cameraLight = new THREE.DirectionalLight(color, directionalLightIntensity);
-  cameraLight.target.position.set(0, 0, 0);
-  return cameraLight;
-}
-
-function createSunLight() {
+function createFrontLight() {
   const color = 0xFFFFFF;
   const directionalLightIntensity = 0.1;
-  const sunLight = new THREE.DirectionalLight(color, directionalLightIntensity);
-  sunLight.position.set(-1000, 1000, -1000);
-  sunLight.target.position.set(0, 0, 0);
-  return sunLight;
+  const light = new THREE.DirectionalLight(color, directionalLightIntensity);
+  light.position.set(800, 100, -1000);
+  light.target.position.set(-1000, 0, -150);
+  light.name = 'FrontLight';
+  return light;
+}
+
+function createBackLight() {
+  const color = 0xFFFFFF;
+  const directionalLightIntensity = 0.1;
+  const light = new THREE.DirectionalLight(color, directionalLightIntensity);
+  light.position.set(-2000, -100, 0);
+  light.target.position.set(0, 0, 0);
+  light.name = 'FrontLight';
+  return light;
 }
 
 function createAmbientLight() {
   const color = 0xFFFFFF;
-  const intensity = 0.3;
+  const intensity = 0.50;
   return new THREE.AmbientLight(color, intensity);
 }
 
@@ -317,14 +317,21 @@ function createMaterialByPartName() {
   };
 }
 
-function createGUI(orbitControls, windTurbine, visibleMeshes, explosionController) {
+function createGUI(
+  orbitControls,
+  windTurbine,
+  visibleMeshes,
+  explosionController,
+  onControllerChange,
+) {
   const gui = new GUI({ autoPlace: false });
   gui.closed = true;
 
   const obj = {
     'Reset View': () => {
-      orbitControls.reset();
       orbitControls.target.set(DEFAULT_ORBIT_CONTROLS_X, 0, 0);
+      orbitControls.object.position.set(1000, 150, -2000);
+      orbitControls.update();
     },
   };
   gui.add(obj, 'Reset View');
@@ -381,6 +388,7 @@ function createGUI(orbitControls, windTurbine, visibleMeshes, explosionControlle
               visibleMeshes.splice(index, 1);
             }
           }
+          onControllerChange();
         });
       },
     };
@@ -398,7 +406,8 @@ function createGUI(orbitControls, windTurbine, visibleMeshes, explosionControlle
       });
     }
   });
-  gui.add(explosionController, 'Explode', 0, 100);
+  gui.add(explosionController, 'Explode', 0, 100)
+    .onChange(onControllerChange);
   return gui;
 }
 
