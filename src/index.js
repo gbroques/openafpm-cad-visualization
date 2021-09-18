@@ -40,6 +40,7 @@ class OpenAfpmCadVisualization {
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
     this._tooltip = createTooltip();
+    this._get_label = compose(removePositionalWords, separatePascalCaseBySpaces);
     this.handleMouseMove = debounce(this._handleMouseMove, 15);
     // Use mutable array to keep track of visible meshes for tooltip performance.
     this._visibleMeshes = [];
@@ -140,7 +141,7 @@ class OpenAfpmCadVisualization {
 
       const intersected = intersects[0];
 
-      const label = separatePascalCaseBySpaces(intersected.object.parent.name);
+      const label = this._get_label(intersected.object.parent.name);
       this._tooltip.textContent = label;
     }
   }
@@ -188,12 +189,12 @@ class OpenAfpmCadVisualization {
     this._explodeX('Coils', statorExlosionFactor);
 
     const rotorExlosionFactor = 0.5;
-    this._explodeX('BottomRotorResinCast', rotorExlosionFactor);
-    this._explodeX('BottomRotorDisk', rotorExlosionFactor);
-    this._explodeX('BottomMagnets', rotorExlosionFactor);
-    this._explodeX('TopRotorResinCast', -rotorExlosionFactor);
-    this._explodeX('TopRotorDisk', -rotorExlosionFactor);
-    this._explodeX('TopMagnets', -rotorExlosionFactor);
+    this._explodeX('FrontRotorResinCast', rotorExlosionFactor);
+    this._explodeX('FrontRotorDisk', rotorExlosionFactor);
+    this._explodeX('FrontMagnets', rotorExlosionFactor);
+    this._explodeX('BackRotorResinCast', -rotorExlosionFactor);
+    this._explodeX('BackRotorDisk', -rotorExlosionFactor);
+    this._explodeX('BackMagnets', -rotorExlosionFactor);
 
     this._explodeX('HubThreads', -0.7);
     this._explodeX('RotorSideFlangeCover', -1);
@@ -283,7 +284,7 @@ function createBackLight() {
   const light = new THREE.DirectionalLight(color, directionalLightIntensity);
   light.position.set(-2000, -100, 0);
   light.target.position.set(0, 0, 0);
-  light.name = 'FrontLight';
+  light.name = 'BackLight';
   return light;
 }
 
@@ -298,12 +299,12 @@ function createMaterialByPartName() {
     StatorResinCast: Material.RESIN,
     StatorMountingStuds: Material.STEEL,
     Coils: Material.COPPER,
-    BottomRotorResinCast: Material.RESIN,
-    BottomRotorDisk: Material.STEEL,
-    BottomMagnets: Material.MAGNET,
-    TopRotorResinCast: Material.RESIN,
-    TopRotorDisk: Material.STEEL,
-    TopMagnets: Material.MAGNET,
+    FrontRotorResinCast: Material.RESIN,
+    FrontRotorDisk: Material.STEEL,
+    FrontMagnets: Material.MAGNET,
+    BackRotorResinCast: Material.RESIN,
+    BackRotorDisk: Material.STEEL,
+    BackMagnets: Material.MAGNET,
     Frame: Material.STEEL,
     Flange: Material.STEEL,
     RotorSideFlangeCover: Material.STEEL,
@@ -340,9 +341,9 @@ function createGUI(
     'Stator Resin Cast': ['StatorResinCast'],
     Studs: ['StatorMountingStuds'],
     Coils: ['Coils'],
-    'Rotor Resin Cast': ['BottomRotorResinCast', 'TopRotorResinCast'],
-    'Rotor Disk': ['BottomRotorDisk', 'TopRotorDisk'],
-    'Rotor Magnets': ['BottomMagnets', 'TopMagnets'],
+    'Rotor Resin Cast': ['FrontRotorResinCast', 'BackRotorResinCast'],
+    'Rotor Disk': ['FrontRotorDisk', 'BackRotorDisk'],
+    'Rotor Magnets': ['FrontMagnets', 'BackMagnets'],
     Hub: {
       Flange: ['Flange'],
       'Rotor Side Flange Cover': ['RotorSideFlangeCover'],
@@ -429,6 +430,14 @@ function handleProgress(xhr) {
 
 function separatePascalCaseBySpaces(pascalCaseWord) {
   return pascalCaseWord.replace(/([A-Z])/g, ' $1').trim();
+}
+
+function removePositionalWords(partName) {
+  return partName.replace(/^(Front|Back)/, '');
+}
+
+function compose(f, g) {
+  return (...args) => g(f(...args));
 }
 
 function createAppContainer(opacityDuration) {

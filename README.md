@@ -36,12 +36,12 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 
 1. Coils
 2. StatorResinCast
-3. TopRotorDisk
-4. TopRotorResinCast
-5. TopMagnets
-6. BottomRotorDisk
-7. BottomRotorResinCast
-8. BottomMagnets
+3. FrontRotorDisk
+4. FrontRotorResinCast
+5. FrontMagnets
+6. BackRotorDisk
+7. BackRotorResinCast
+8. BackMagnets
 9. Flange
 10. RotorSideFlangeCover
 11. FrameSideFlangeCover
@@ -98,9 +98,7 @@ This method is debounced with a 10 millisecond wait time.
 **Returns:** `undefined`
 
 #### cleanUp()
-Performs various clean-up such as:
-* [disposing geometries and materials](https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects)
-* [cancelling the animation frame callback](https://developer.mozilla.org/en-US/docs/Web/API/Window/cancelAnimationFrame)
+Performs various clean-up such as [disposing geometries and materials](https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects).
 
 **Returns:** `undefined`
 
