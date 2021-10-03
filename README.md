@@ -49,10 +49,11 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 13. HubThreads
 14. Frame
 15. YawBearing
-16. TailBoom
-17. TailVane
-18. TailHinge
-19. StatorMountingStuds
+16. TailHinge
+17. OuterTailHinge 
+18. TailBoom
+19. TailVane
+20. StatorMountingStuds
 
 ## API
 

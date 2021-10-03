@@ -208,6 +208,7 @@ class OpenAfpmCadVisualization {
 
     this._explodeX('YawBearing', -3.4);
     this._explodeX('TailHinge', -4.3);
+    this._explodeX('OuterTailHinge', -4.3);
     this._explodeX('TailBoom', -5);
     this._explodeX('TailVane', -7);
   }
@@ -313,6 +314,7 @@ function createMaterialByPartName() {
     HubThreads: Material.STEEL,
     YawBearing: Material.STEEL,
     TailHinge: Material.STEEL,
+    OuterTailHinge: Material.STEEL,
     TailBoom: Material.STEEL,
     TailVane: Material.WOOD,
   };
@@ -354,8 +356,11 @@ function createGUI(
     Frame: ['Frame'],
     'Yaw Bearing': ['YawBearing'],
     'Tail Hinge': ['TailHinge'],
-    'Tail Boom': ['TailBoom'],
-    'Tail Vane': ['TailVane'],
+    Tail: [
+      'OuterTailHinge',
+      'TailBoom',
+      'TailVane',
+    ],
   };
 
   const partNamesByVisibilityLabel = flattenObject(guiConfiguration);
