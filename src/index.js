@@ -13,8 +13,16 @@ import debounce from './debounce';
 import createTooltip from './tooltip';
 import flattenObject from './flattenObject';
 import createLoadingScreen from './loading';
+import transformsToMatrix4 from './transformsToMatrix4';
+import findMeshes from './findMeshes';
 
 const DEFAULT_ORBIT_CONTROLS_X = -1100;
+
+const TAIL_PARTS = new Set([
+  'OuterTailHinge',
+  'TailBoom',
+  'TailVane',
+]);
 
 class OpenAfpmCadVisualization {
   constructor(options) {
@@ -23,6 +31,7 @@ class OpenAfpmCadVisualization {
       rootDomElement,
       width,
       height,
+      furlTransforms,
     } = options;
 
     this._camera = createCamera(width, height);
@@ -33,7 +42,8 @@ class OpenAfpmCadVisualization {
       () => this._render(),
     );
     this._windTurbine = {};
-    this._explosionController = { Explode: 0 };
+    this._controller = { Explode: 0, Furl: 0 };
+    this._furlTransforms = furlTransforms;
 
     const lightByName = createLightByName();
 
@@ -55,12 +65,13 @@ class OpenAfpmCadVisualization {
         light.target.updateMatrixWorld();
         this._scene.add(light.target);
       }
-      if (DEBUG && light.type === 'DirectionalLight') {
-        const lightHelper = new THREE.DirectionalLightHelper(
-          light, 100, 0x000000,
-        );
-        this._scene.add(lightHelper);
-      }
+      // Uncomment below lines when debugging lights.
+      // if (DEBUG && light.type === 'DirectionalLight') {
+      //   const lightHelper = new THREE.DirectionalLightHelper(
+      //     light, 100, 0x000000,
+      //   );
+      //   this._scene.add(lightHelper);
+      // }
     });
 
     if (DEBUG) {
@@ -76,6 +87,17 @@ class OpenAfpmCadVisualization {
     const opacityDuration = 200; // in milliseconds
     const loadingScreen = createLoadingScreen(opacityDuration, height);
     rootDomElement.appendChild(loadingScreen);
+
+    const tailMatrix = transformsToMatrix4(furlTransforms);
+    this._tail = initializeTail(tailMatrix);
+
+    this._tailCenter = new THREE.Vector3()
+      .setFromMatrixPosition(tailMatrix);
+
+    const tailMatrixInverse = new THREE.Matrix4()
+      .copy(tailMatrix)
+      .invert();
+
     loadObj(objUrl)
       .then(groupWiresTogether)
       .then((parts) => {
@@ -88,15 +110,24 @@ class OpenAfpmCadVisualization {
             const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
             this._visibleMeshes.push(mesh);
             mesh.material = material;
-            this._scene.add(part);
-            this._windTurbine[part.name] = part;
+            if (TAIL_PARTS.has(part.name)) {
+              part.matrix = tailMatrixInverse;
+              part.matrixAutoUpdate = false;
+              this._tail.add(part);
+            } else {
+              this._scene.add(part);
+              this._windTurbine[part.name] = part;
+            }
           });
+          this._scene.add(this._tail);
+          this._windTurbine.Tail = this._tail;
+
           const handleExplode = debounce(() => this._render(), 5);
           const gui = createGUI(
             this._orbitControls,
             this._windTurbine,
             this._visibleMeshes,
-            this._explosionController,
+            this._controller,
             handleExplode,
           );
           // Must append container to root DOM element before this._mount()
@@ -174,7 +205,9 @@ class OpenAfpmCadVisualization {
 
   _render() {
     if (this._isWindTurbineLoaded()) {
-      this._explode();
+      const tailHingeExplosionFactor = -4.3;
+      this._furl(tailHingeExplosionFactor);
+      this._explode(tailHingeExplosionFactor);
     }
     this._renderer.render(this._scene, this._camera);
   }
@@ -183,7 +216,20 @@ class OpenAfpmCadVisualization {
     return Object.keys(this._windTurbine).length > 0;
   }
 
-  _explode() {
+  _furl(tailHingeExplosionFactor) {
+    const furlAngle = this._controller.Furl * (Math.PI / 180);
+    this._furlTransforms[1].angle = furlAngle;
+    const transform = transformsToMatrix4(this._furlTransforms);
+    const explode = this._controller.Explode;
+    const explodeVector = new THREE.Vector3(
+      explode * tailHingeExplosionFactor, 0, 0,
+    );
+    explodeVector.add(this._tailCenter);
+    transform.setPosition(explodeVector);
+    this._tail.matrix = transform;
+  }
+
+  _explode(tailHingeExplosionFactor) {
     const statorExlosionFactor = 0;
     this._explodeX('StatorResinCast', statorExlosionFactor);
     this._explodeX('Coils', statorExlosionFactor);
@@ -207,14 +253,11 @@ class OpenAfpmCadVisualization {
     this._explodeX('StatorMountingStuds', frameExplosionFactor);
 
     this._explodeX('YawBearing', -3.4);
-    this._explodeX('TailHinge', -4.3);
-    this._explodeX('OuterTailHinge', -4.3);
-    this._explodeX('TailBoom', -5);
-    this._explodeX('TailVane', -7);
+    this._explodeX('TailHinge', tailHingeExplosionFactor);
   }
 
   _explodeX(property, explosionFactor) {
-    const explode = this._explosionController.Explode;
+    const explode = this._controller.Explode;
     if (this._windTurbine[property]) {
       this._windTurbine[property].position.x = explode * explosionFactor;
     }
@@ -324,11 +367,11 @@ function createGUI(
   orbitControls,
   windTurbine,
   visibleMeshes,
-  explosionController,
+  controller,
   onControllerChange,
 ) {
   const gui = new GUI({ autoPlace: false });
-  gui.closed = true;
+  gui.closed = false;
 
   const obj = {
     'Reset View': () => {
@@ -338,29 +381,31 @@ function createGUI(
     },
   };
   gui.add(obj, 'Reset View');
+  gui.add(controller, 'Explode', 0, 100)
+    .onChange(onControllerChange);
+  gui.add(controller, 'Furl', 0, 105)
+    .onChange(onControllerChange);
 
   const guiConfiguration = {
-    'Stator Resin Cast': ['StatorResinCast'],
-    Studs: ['StatorMountingStuds'],
+    'Resin Cast': [
+      'StatorResinCast',
+      'FrontRotorResinCast',
+      'BackRotorResinCast',
+    ],
     Coils: ['Coils'],
-    'Rotor Resin Cast': ['FrontRotorResinCast', 'BackRotorResinCast'],
     'Rotor Disk': ['FrontRotorDisk', 'BackRotorDisk'],
-    'Rotor Magnets': ['FrontMagnets', 'BackMagnets'],
-    Hub: {
-      Flange: ['Flange'],
-      'Rotor Side Flange Cover': ['RotorSideFlangeCover'],
-      'Frame Side Flange Cover': ['FrameSideFlangeCover'],
-      'Stub Axle Shaft': ['StubAxleShaft'],
-    },
-    Threads: ['HubThreads'],
-    Frame: ['Frame'],
+    Magnets: ['FrontMagnets', 'BackMagnets'],
+    Hub: [
+      'Flange',
+      'RotorSideFlangeCover',
+      'FrameSideFlangeCover',
+      'StubAxleShaft',
+      'HubThreads',
+    ],
+    Frame: ['Frame', 'StatorMountingStuds'],
     'Yaw Bearing': ['YawBearing'],
     'Tail Hinge': ['TailHinge'],
-    Tail: [
-      'OuterTailHinge',
-      'TailBoom',
-      'TailVane',
-    ],
+    Tail: ['Tail'],
   };
 
   const partNamesByVisibilityLabel = flattenObject(guiConfiguration);
@@ -380,18 +425,28 @@ function createGUI(
           const part = windTurbine[partName];
           part.visible = value;
           if (value) {
-            const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
-            if (!mesh) {
-              console.warn(`No mesh found for part '${partName}'`);
+            const meshes = findMeshes(part);
+            if (!meshes) {
+              console.warn(`No meshes found for part '${partName}'`);
             } else {
-              visibleMeshes.push(mesh);
+              visibleMeshes.push(...meshes);
             }
           } else {
-            const index = visibleMeshes.findIndex((m) => m.name === `${partName}Mesh`);
-            if (index < 0) {
-              console.warn(`No mesh found for part '${partName}'`);
+            const removeVisibleMesh = (meshName) => {
+              const index = visibleMeshes.findIndex((m) => m.name === `${meshName}Mesh`);
+              if (index < 0) {
+                console.warn(`No mesh found for part '${meshName}'`);
+              } else {
+                visibleMeshes.splice(index, 1);
+              }
+            };
+            const meshNamesByPartName = {
+              Tail: TAIL_PARTS,
+            };
+            if (meshNamesByPartName[partName]) {
+              meshNamesByPartName[partName].forEach(removeVisibleMesh);
             } else {
-              visibleMeshes.splice(index, 1);
+              removeVisibleMesh(partName);
             }
           }
           onControllerChange();
@@ -399,12 +454,13 @@ function createGUI(
       },
     };
   }, {});
+  const visibilityGui = gui.addFolder('Visibility');
   Object.entries(guiConfiguration).forEach(([key, value]) => {
     const changeHandler = changeHandlerByVisibilityLabel[key];
     if (changeHandler) {
-      gui.add(visibilityController, key).onChange(changeHandler);
+      visibilityGui.add(visibilityController, key).onChange(changeHandler);
     } else {
-      const subgui = gui.addFolder(key);
+      const subgui = visibilityGui.addFolder(key);
       const subVisibilityLabels = Object.keys(value);
       subVisibilityLabels.forEach((visibilityLabel) => {
         const ch = changeHandlerByVisibilityLabel[visibilityLabel];
@@ -412,8 +468,6 @@ function createGUI(
       });
     }
   });
-  gui.add(explosionController, 'Explode', 0, 100)
-    .onChange(onControllerChange);
   return gui;
 }
 
@@ -449,6 +503,14 @@ function createAppContainer(opacityDuration) {
   const container = window.document.createElement('div');
   container.style = `opacity: 0; transition: opacity ${opacityDuration}ms ease-in-out;`;
   return container;
+}
+
+function initializeTail(tailMatrix) {
+  const tail = new THREE.Group();
+  tail.name = 'Tail';
+  tail.matrix = tailMatrix;
+  tail.matrixAutoUpdate = false;
+  return tail;
 }
 
 module.exports = OpenAfpmCadVisualization;

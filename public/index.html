@@ -43,12 +43,13 @@
     <script>
         const header = document.getElementsByTagName('header')[0];
         const headerHeight = header.offsetHeight;
-        function loadTurbine(objUrl) {
+        function loadTurbine(objUrl, furlTransforms) {
             const windTurbineVisualization = new OpenAfpmCadVisualization({
                 objUrl,
                 rootDomElement: document.getElementById('container'),
                 width: window.innerWidth,
                 height: window.innerHeight - headerHeight,
+                furlTransforms
             });
             const handleResize = () => {
                 windTurbineVisualization.resize(window.innerWidth, window.innerHeight - headerHeight)
@@ -65,14 +66,22 @@
                 windTurbineVisualization.cleanUp();
             };
         }
-        let cleanUp = loadTurbine('t-shape.obj')
+        let furlTransformsByObjUrl = null;
+        let cleanUp = null;
+        fetch('furlTransforms.json')
+            .then(r => r.json())
+            .then(furlTransforms => {
+                furlTransformsByObjUrl = furlTransforms;
+                cleanUp = loadTurbine('t-shape.obj', furlTransforms['t-shape.obj'])
+            });
         const select = document.getElementsByTagName('select')[0];
         select.addEventListener('change', event => {
             const selectedObjUrl = event.target.value;
             const container = document.getElementById('container');
             container.innerHTML = '';
             cleanUp();
-            cleanUp = loadTurbine(selectedObjUrl);
+            const furlTransforms = furlTransformsByObjUrl[selectedObjUrl];
+            cleanUp = loadTurbine(selectedObjUrl, furlTransforms);
         });
     </script>
 </body>

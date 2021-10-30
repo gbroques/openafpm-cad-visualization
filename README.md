@@ -72,6 +72,17 @@ Construct a new OpenAFPM CAD visualization instance.
 |`options.rootDomElement`|[`Element`](https://developer.mozilla.org/en-US/docs/Web/API/Element)|`true`|DOM element to mount visualization elements to.|
 |`options.width`|`number`|`true`|Width of visualization.|
 |`options.height`|`number`|`true`|Height of visualization.|
+|`options.furlTransforms`|`Array.<Transform>`|`true`|Three element array of `Transform` objects needed to furl the tail. See below table for details.|
+
+###### Transform
+
+|Name|Type|Required|Description|
+|----|----|--------|-----------|
+|`transform`|`Object`|`true`|An object representing a 3D transformation in [Axis–angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation).|
+|`transform.name`|`string`|`false`|Name of transformation (*optional*).|
+|`transform.position`|`Array.<number>`|`true`|Three element array for x, y, and z coordinates.|
+|`transform.axis`|`Array.<number>`|`true`|Axis of rotation, three element array for x, y, and z axes.|
+|`transform.angle`|`number`|`true`|Angle of rotation (**in radians**).|
 
 #### resize(width, height)
 Resize visualization to specified `width` and `height`.
