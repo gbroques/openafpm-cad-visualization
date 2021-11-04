@@ -243,9 +243,9 @@ class OpenAfpmCadVisualization {
     this._explodeX('BackMagnets', -rotorExlosionFactor);
 
     this._explodeX('HubThreads', -0.7);
-    this._explodeX('RotorSideFlangeCover', -1);
+    this._explodeX('FrontFlangeCover', -1);
     this._explodeX('Flange', -1.2);
-    this._explodeX('FrameSideFlangeCover', -1.4);
+    this._explodeX('BackFlangeCover', -1.4);
     this._explodeX('StubAxleShaft', -1.6);
 
     const frameExplosionFactor = -2.5;
@@ -351,8 +351,8 @@ function createMaterialByPartName() {
     BackMagnets: Material.MAGNET,
     Frame: Material.STEEL,
     Flange: Material.STEEL,
-    RotorSideFlangeCover: Material.STEEL,
-    FrameSideFlangeCover: Material.STEEL,
+    FrontFlangeCover: Material.STEEL,
+    BackFlangeCover: Material.STEEL,
     StubAxleShaft: Material.STEEL,
     HubThreads: Material.STEEL,
     YawBearing: Material.STEEL,
@@ -397,8 +397,8 @@ function createGUI(
     Magnets: ['FrontMagnets', 'BackMagnets'],
     Hub: [
       'Flange',
-      'RotorSideFlangeCover',
-      'FrameSideFlangeCover',
+      'FrontFlangeCover',
+      'BackFlangeCover',
       'StubAxleShaft',
       'HubThreads',
     ],

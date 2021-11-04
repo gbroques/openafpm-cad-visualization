@@ -43,8 +43,8 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 7. BackRotorResinCast
 8. BackMagnets
 9. Flange
-10. RotorSideFlangeCover
-11. FrameSideFlangeCover
+10. FrontFlangeCover
+11. BackFlangeCover
 12. StubAxleShaft
 13. HubThreads
 14. Frame
