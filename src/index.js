@@ -18,6 +18,16 @@ import findMeshes from './findMeshes';
 
 const DEFAULT_ORBIT_CONTROLS_X = -1100;
 
+/**
+ * Duplicated in openafpm-cad-core.
+ *
+ * We could possibly retrieve this from openafpm-cad-core
+ * to avoid the duplication if it changes often.
+ *
+ * @see https://github.com/gbroques/openafpm-cad-core/blob/master/openafpm_cad_core/create_spreadsheet_document.py#L170-L173
+ */
+const ALTERNATOR_TILT_ANGLE = 4 * (Math.PI / 180);
+
 const TAIL_PARTS = new Set([
   'OuterTailHinge',
   'TailBoom',
@@ -205,7 +215,7 @@ class OpenAfpmCadVisualization {
 
   _render() {
     if (this._isWindTurbineLoaded()) {
-      const tailHingeExplosionFactor = -4.3;
+      const tailHingeExplosionFactor = -8;
       this._furl(tailHingeExplosionFactor);
       this._explode(tailHingeExplosionFactor);
     }
@@ -220,10 +230,7 @@ class OpenAfpmCadVisualization {
     const furlAngle = this._controller.Furl * (Math.PI / 180);
     this._furlTransforms[1].angle = furlAngle;
     const transform = transformsToMatrix4(this._furlTransforms);
-    const explode = this._controller.Explode;
-    const explodeVector = new THREE.Vector3(
-      explode * tailHingeExplosionFactor, 0, 0,
-    );
+    const explodeVector = this._getExplosionVector(tailHingeExplosionFactor);
     explodeVector.add(this._tailCenter);
     transform.setPosition(explodeVector);
     this._tail.matrix = transform;
@@ -231,36 +238,46 @@ class OpenAfpmCadVisualization {
 
   _explode(tailHingeExplosionFactor) {
     const statorExlosionFactor = 0;
-    this._explodeX('StatorResinCast', statorExlosionFactor);
-    this._explodeX('Coils', statorExlosionFactor);
+    this._explodeAlongAlternatorTilt('StatorResinCast', statorExlosionFactor);
+    this._explodeAlongAlternatorTilt('Coils', statorExlosionFactor);
 
-    const rotorExlosionFactor = 0.5;
-    this._explodeX('FrontRotorResinCast', rotorExlosionFactor);
-    this._explodeX('FrontRotorDisk', rotorExlosionFactor);
-    this._explodeX('FrontMagnets', rotorExlosionFactor);
-    this._explodeX('BackRotorResinCast', -rotorExlosionFactor);
-    this._explodeX('BackRotorDisk', -rotorExlosionFactor);
-    this._explodeX('BackMagnets', -rotorExlosionFactor);
+    const rotorExlosionFactor = 1.5;
+    this._explodeAlongAlternatorTilt('FrontRotorResinCast', rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt('FrontRotorDisk', rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt('FrontMagnets', rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt('BackRotorResinCast', -rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt('BackRotorDisk', -rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt('BackMagnets', -rotorExlosionFactor);
 
-    this._explodeX('HubThreads', -0.7);
-    this._explodeX('FrontFlangeCover', -1);
-    this._explodeX('Flange', -1.2);
-    this._explodeX('BackFlangeCover', -1.4);
-    this._explodeX('StubAxleShaft', -1.6);
+    this._explodeAlongAlternatorTilt('FrontFlangeCover', -2.8);
+    const flangeExplosionFactor = -3;
+    this._explodeAlongAlternatorTilt('HubThreads', flangeExplosionFactor);
+    this._explodeAlongAlternatorTilt('Flange', flangeExplosionFactor);
+    this._explodeAlongAlternatorTilt('BackFlangeCover', -3.3);
+    this._explodeAlongAlternatorTilt('StubAxleShaft', -4.5);
 
-    const frameExplosionFactor = -2.5;
-    this._explodeX('Frame', frameExplosionFactor);
-    this._explodeX('StatorMountingStuds', frameExplosionFactor);
+    const frameExplosionFactor = -6;
+    this._explodeAlongAlternatorTilt('Frame', frameExplosionFactor);
+    this._explodeAlongAlternatorTilt('StatorMountingStuds', frameExplosionFactor);
 
-    this._explodeX('YawBearing', -3.4);
-    this._explodeX('TailHinge', tailHingeExplosionFactor);
+    this._explodeAlongAlternatorTilt('YawBearing', -7);
+    this._explodeAlongAlternatorTilt('TailHinge', tailHingeExplosionFactor);
   }
 
-  _explodeX(property, explosionFactor) {
-    const explode = this._controller.Explode;
+  _explodeAlongAlternatorTilt(property, explosionFactor) {
     if (this._windTurbine[property]) {
-      this._windTurbine[property].position.x = explode * explosionFactor;
+      const explosionVector = this._getExplosionVector(explosionFactor);
+      this._windTurbine[property].position.copy(explosionVector);
     }
+  }
+
+  _getExplosionVector(explosionFactor) {
+    const explode = this._controller.Explode;
+    return new THREE.Vector3(
+      explode * explosionFactor * Math.cos(ALTERNATOR_TILT_ANGLE),
+      explode * explosionFactor * Math.sin(ALTERNATOR_TILT_ANGLE),
+      0,
+    );
   }
 }
 
