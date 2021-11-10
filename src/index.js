@@ -30,7 +30,11 @@ const ALTERNATOR_TILT_ANGLE = 4 * (Math.PI / 180);
 
 const TAIL_PARTS = new Set([
   'OuterTailHinge',
-  'TailBoom',
+  'TailBoomPipe',
+  'TailBoomTriangularBrace',
+  'OuterTailHingeHighEndStop',
+  'TopTailVaneBracket',
+  'BottomTailVaneBracket',
   'TailVane',
 ]);
 
@@ -375,7 +379,11 @@ function createMaterialByPartName() {
     YawBearing: Material.STEEL,
     TailHinge: Material.STEEL,
     OuterTailHinge: Material.STEEL,
-    TailBoom: Material.STEEL,
+    TailBoomPipe: Material.STEEL,
+    TailBoomTriangularBrace: Material.STEEL,
+    OuterTailHingeHighEndStop: Material.STEEL,
+    TopTailVaneBracket: Material.STEEL,
+    BottomTailVaneBracket: Material.STEEL,
     TailVane: Material.WOOD,
   };
 }
@@ -509,7 +517,7 @@ function separatePascalCaseBySpaces(pascalCaseWord) {
 }
 
 function removePositionalWords(partName) {
-  return partName.replace(/^(Front|Back)/, '');
+  return partName.replace(/^(Front|Back|Top|Bottom)/, '');
 }
 
 function compose(f, g) {
