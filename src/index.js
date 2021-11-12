@@ -57,9 +57,11 @@ class OpenAfpmCadVisualization {
     );
     this._windTurbine = {};
     this._controller = { Explode: 0, Furl: 0 };
+    this._resetController = () => {
+      this._controller.Explode = 0;
+      this._controller.Furl = 0;
+    };
     this._furlTransforms = furlTransforms;
-
-    const lightByName = createLightByName();
 
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
@@ -71,6 +73,7 @@ class OpenAfpmCadVisualization {
 
     this._scene = new THREE.Scene();
 
+    const lightByName = createLightByName();
     const lights = Object.values(lightByName);
     lights.forEach((light) => {
       this._scene.add(light);
@@ -136,14 +139,16 @@ class OpenAfpmCadVisualization {
           this._scene.add(this._tail);
           this._windTurbine.Tail = this._tail;
 
-          const handleExplode = debounce(() => this._render(), 5);
-          const gui = createGUI(
+          const handleRender = debounce(() => this._render(), 5);
+          const [gui, cleanUpGui] = createGUI(
             this._orbitControls,
             this._windTurbine,
             this._visibleMeshes,
             this._controller,
-            handleExplode,
+            handleRender,
           );
+          this._cleanUpGui = cleanUpGui;
+
           // Must append container to root DOM element before this._mount()
           rootDomElement.appendChild(container);
           this._mount(container, gui.domElement);
@@ -201,20 +206,25 @@ class OpenAfpmCadVisualization {
     rootDomElement.appendChild(this._tooltip);
   }
 
-  _animate() {
-    this._orbitControls.update();
-    this._render();
-    this._animationFrameRequestId = window.requestAnimationFrame(() => this._animate());
-  }
-
+  /**
+   * @see https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects
+   */
   cleanUp() {
+    // Resetting the controller and rendering once,
+    // fixes an issue where tail furling would persist
+    // when selecting different wind turbine variants.
+    this._resetController();
+    this._render();
+
+    if (this._cleanUpGui) this._cleanUpGui();
+
     this._scene.traverse((object) => {
       if (object instanceof THREE.Mesh) {
         object.material.dispose();
         object.geometry.dispose();
       }
     });
-    window.cancelAnimationFrame(this._animationFrameRequestId);
+    this._renderer.dispose();
   }
 
   _render() {
@@ -310,6 +320,14 @@ function createCamera(width, height) {
   return camera;
 }
 
+/**
+ * TODO
+ * Consider sharing renderer across different wind turbine visualizations to avoid:
+ * "WARNING: Too many active WebGL contexts. Oldest context will be lost."
+ * @see https://stackoverflow.com/questions/21548247/clean-up-threejs-webgl-contexts
+ *
+ * Consider adding a "set" or "populate scene" method.
+ */
 function createRenderer(width, height) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height);
@@ -485,6 +503,10 @@ function createGUI(
     if (changeHandler) {
       visibilityGui.add(visibilityController, key).onChange(changeHandler);
     } else {
+      // TODO
+      // Consider removing subgui or sub-folder support for Visiblity folder,
+      // as it complicates "destroying the GUI".
+      // https://github.com/dataarts/dat.gui/issues/177#issuecomment-366414708
       const subgui = visibilityGui.addFolder(key);
       const subVisibilityLabels = Object.keys(value);
       subVisibilityLabels.forEach((visibilityLabel) => {
@@ -493,7 +515,11 @@ function createGUI(
       });
     }
   });
-  return gui;
+  const cleanUp = () => {
+    gui.removeFolder(visibilityGui);
+    gui.destroy();
+  };
+  return [gui, cleanUp];
 }
 
 function loadObj(url) {
