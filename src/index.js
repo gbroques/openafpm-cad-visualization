@@ -15,6 +15,7 @@ import flattenObject from './flattenObject';
 import createLoadingScreen from './loading';
 import transformsToMatrix4 from './transformsToMatrix4';
 import findMeshes from './findMeshes';
+import Part from './part';
 
 const DEFAULT_ORBIT_CONTROLS_X = -1100;
 
@@ -29,13 +30,13 @@ const DEFAULT_ORBIT_CONTROLS_X = -1100;
 const ALTERNATOR_TILT_ANGLE = 4 * (Math.PI / 180);
 
 const TAIL_PARTS = new Set([
-  'OuterTailHinge',
-  'TailBoomPipe',
-  'TailBoomTriangularBrace',
-  'OuterTailHingeHighEndStop',
-  'TopTailVaneBracket',
-  'BottomTailVaneBracket',
-  'TailVane',
+  Part.Tail_Hinge_Outer,
+  Part.Tail_Boom_Pipe,
+  Part.Tail_Boom_Support,
+  Part.Tail_Stop_HighEnd,
+  Part.Vane_Bracket_Top,
+  Part.Vane_Bracket_Bottom,
+  Part.Tail_Vane,
 ]);
 
 class OpenAfpmCadVisualization {
@@ -66,7 +67,6 @@ class OpenAfpmCadVisualization {
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
     this._tooltip = createTooltip();
-    this._get_label = compose(removePositionalWords, separatePascalCaseBySpaces);
     this.handleMouseMove = debounce(this._handleMouseMove, 15);
     // Use mutable array to keep track of visible meshes for tooltip performance.
     this._visibleMeshes = [];
@@ -97,8 +97,6 @@ class OpenAfpmCadVisualization {
       this._scene.add(axesHelper);
     }
 
-    const materialByPartName = createMaterialByPartName();
-
     const groupWiresTogether = makeGroupWiresTogether(width, height);
 
     const opacityDuration = 200; // in milliseconds
@@ -123,7 +121,7 @@ class OpenAfpmCadVisualization {
           rootDomElement.removeChild(loadingScreen);
           const container = createAppContainer(opacityDuration);
           parts.forEach((part) => {
-            const material = materialByPartName[part.name];
+            const material = getMaterial(part.name);
             const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
             this._visibleMeshes.push(mesh);
             mesh.material = material;
@@ -191,7 +189,7 @@ class OpenAfpmCadVisualization {
 
       const intersected = intersects[0];
 
-      const label = this._get_label(intersected.object.parent.name);
+      const label = getLabel(intersected.object.parent.name);
       this._tooltip.textContent = label;
     }
   }
@@ -252,30 +250,30 @@ class OpenAfpmCadVisualization {
 
   _explode(tailHingeExplosionFactor) {
     const statorExlosionFactor = 0;
-    this._explodeAlongAlternatorTilt('StatorResinCast', statorExlosionFactor);
-    this._explodeAlongAlternatorTilt('Coils', statorExlosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Stator_ResinCast, statorExlosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Stator_Coils, statorExlosionFactor);
 
     const rotorExlosionFactor = 1.5;
-    this._explodeAlongAlternatorTilt('FrontRotorResinCast', rotorExlosionFactor);
-    this._explodeAlongAlternatorTilt('FrontRotorDisk', rotorExlosionFactor);
-    this._explodeAlongAlternatorTilt('FrontMagnets', rotorExlosionFactor);
-    this._explodeAlongAlternatorTilt('BackRotorResinCast', -rotorExlosionFactor);
-    this._explodeAlongAlternatorTilt('BackRotorDisk', -rotorExlosionFactor);
-    this._explodeAlongAlternatorTilt('BackMagnets', -rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Rotor_ResinCast_Front, rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Rotor_Disk_Front, rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Rotor_Magnets_Front, rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Rotor_ResinCast_Back, -rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Rotor_Disk_Back, -rotorExlosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Rotor_Magnets_Back, -rotorExlosionFactor);
 
-    this._explodeAlongAlternatorTilt('FrontFlangeCover', -2.8);
+    this._explodeAlongAlternatorTilt(Part.Hub_Flange_Cover_Front, -2.8);
     const flangeExplosionFactor = -3;
-    this._explodeAlongAlternatorTilt('HubThreads', flangeExplosionFactor);
-    this._explodeAlongAlternatorTilt('Flange', flangeExplosionFactor);
-    this._explodeAlongAlternatorTilt('BackFlangeCover', -3.3);
-    this._explodeAlongAlternatorTilt('StubAxleShaft', -4.5);
+    this._explodeAlongAlternatorTilt(Part.Studs_Hub, flangeExplosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Hub_Flange, flangeExplosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Hub_Flange_Cover_Back, -3.3);
+    this._explodeAlongAlternatorTilt(Part.Hub_StubAxleShaft, -4.5);
 
     const frameExplosionFactor = -6;
-    this._explodeAlongAlternatorTilt('Frame', frameExplosionFactor);
-    this._explodeAlongAlternatorTilt('StatorMountingStuds', frameExplosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Frame, frameExplosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Studs_Frame, frameExplosionFactor);
 
-    this._explodeAlongAlternatorTilt('YawBearing', -7);
-    this._explodeAlongAlternatorTilt('TailHinge', tailHingeExplosionFactor);
+    this._explodeAlongAlternatorTilt(Part.YawBearing, -7);
+    this._explodeAlongAlternatorTilt(Part.Tail_Hinge_Inner, tailHingeExplosionFactor);
   }
 
   _explodeAlongAlternatorTilt(property, explosionFactor) {
@@ -377,33 +375,22 @@ function createAmbientLight() {
   return new THREE.AmbientLight(color, intensity);
 }
 
-function createMaterialByPartName() {
-  return {
-    StatorResinCast: Material.RESIN,
-    StatorMountingStuds: Material.STEEL,
-    Coils: Material.COPPER,
-    FrontRotorResinCast: Material.RESIN,
-    FrontRotorDisk: Material.STEEL,
-    FrontMagnets: Material.MAGNET,
-    BackRotorResinCast: Material.RESIN,
-    BackRotorDisk: Material.STEEL,
-    BackMagnets: Material.MAGNET,
-    Frame: Material.STEEL,
-    Flange: Material.STEEL,
-    FrontFlangeCover: Material.STEEL,
-    BackFlangeCover: Material.STEEL,
-    StubAxleShaft: Material.STEEL,
-    HubThreads: Material.STEEL,
-    YawBearing: Material.STEEL,
-    TailHinge: Material.STEEL,
-    OuterTailHinge: Material.STEEL,
-    TailBoomPipe: Material.STEEL,
-    TailBoomTriangularBrace: Material.STEEL,
-    OuterTailHingeHighEndStop: Material.STEEL,
-    TopTailVaneBracket: Material.STEEL,
-    BottomTailVaneBracket: Material.STEEL,
-    TailVane: Material.WOOD,
-  };
+function getMaterial(partName) {
+  switch (partName) {
+    case Part.Stator_ResinCast:
+    case Part.Rotor_ResinCast_Front:
+    case Part.Rotor_ResinCast_Back:
+      return Material.RESIN;
+    case Part.Stator_Coils:
+      return Material.COPPER;
+    case Part.Rotor_Magnets_Front:
+    case Part.Rotor_Magnets_Back:
+      return Material.MAGNET;
+    case Part.Tail_Vane:
+      return Material.WOOD;
+    default:
+      return Material.STEEL;
+  }
 }
 
 function createGUI(
@@ -431,23 +418,23 @@ function createGUI(
 
   const guiConfiguration = {
     'Resin Cast': [
-      'StatorResinCast',
-      'FrontRotorResinCast',
-      'BackRotorResinCast',
+      Part.Stator_ResinCast,
+      Part.Rotor_ResinCast_Front,
+      Part.Rotor_ResinCast_Back,
     ],
-    Coils: ['Coils'],
-    'Rotor Disk': ['FrontRotorDisk', 'BackRotorDisk'],
-    Magnets: ['FrontMagnets', 'BackMagnets'],
+    Coils: [Part.Stator_Coils],
+    'Rotor Disk': [Part.Rotor_Disk_Front, Part.Rotor_Disk_Back],
+    Magnets: [Part.Rotor_Magnets_Front, Part.Rotor_Magnets_Back],
     Hub: [
-      'Flange',
-      'FrontFlangeCover',
-      'BackFlangeCover',
-      'StubAxleShaft',
-      'HubThreads',
+      Part.Hub_Flange,
+      Part.Hub_Flange_Cover_Front,
+      Part.Hub_Flange_Cover_Back,
+      Part.Hub_StubAxleShaft,
+      Part.Studs_Hub,
     ],
-    Frame: ['Frame', 'StatorMountingStuds'],
-    'Yaw Bearing': ['YawBearing'],
-    'Tail Hinge': ['TailHinge'],
+    Frame: [Part.Frame, Part.Studs_Frame],
+    'Yaw Bearing': [Part.YawBearing],
+    'Tail Hinge': [Part.Tail_Hinge_Inner],
     Tail: ['Tail'],
   };
 
@@ -538,18 +525,6 @@ function handleProgress(xhr) {
   }
 }
 
-function separatePascalCaseBySpaces(pascalCaseWord) {
-  return pascalCaseWord.replace(/([A-Z])/g, ' $1').trim();
-}
-
-function removePositionalWords(partName) {
-  return partName.replace(/^(Front|Back|Top|Bottom)/, '');
-}
-
-function compose(f, g) {
-  return (...args) => g(f(...args));
-}
-
 function createAppContainer(opacityDuration) {
   const container = window.document.createElement('div');
   container.style = `opacity: 0; transition: opacity ${opacityDuration}ms ease-in-out;`;
@@ -562,6 +537,35 @@ function initializeTail(tailMatrix) {
   tail.matrix = tailMatrix;
   tail.matrixAutoUpdate = false;
   return tail;
+}
+
+function getLabel(partName) {
+  return {
+    [Part.Stator_Coils]: 'Coils',
+    [Part.Stator_ResinCast]: 'Stator Resin Cast',
+    [Part.Rotor_Disk_Front]: 'Rotor Disk',
+    [Part.Rotor_ResinCast_Front]: 'Rotor Resin Cast',
+    [Part.Rotor_Magnets_Front]: 'Magnets',
+    [Part.Rotor_Disk_Back]: 'Rotor Disk',
+    [Part.Rotor_ResinCast_Back]: 'Rotor Resin Cast',
+    [Part.Rotor_Magnets_Back]: 'Rotor Magnets',
+    [Part.Hub_Flange]: 'Flange',
+    [Part.Hub_Flange_Cover_Front]: 'Flange Cover',
+    [Part.Hub_Flange_Cover_Back]: 'Flange Cover',
+    [Part.Hub_StubAxleShaft]: 'Stub Axle Shaft',
+    [Part.Studs_Hub]: 'Hub Studs',
+    [Part.Frame]: 'Frame',
+    [Part.YawBearing]: 'Yaw Bearing',
+    [Part.Tail_Hinge_Inner]: 'Tail Hinge',
+    [Part.Tail_Hinge_Outer]: 'Outer Tail Hinge',
+    [Part.Tail_Boom_Pipe]: 'Boom Pipe',
+    [Part.Tail_Boom_Support]: 'Boom Support',
+    [Part.Tail_Stop_HighEnd]: 'High End Stop',
+    [Part.Vane_Bracket_Top]: 'Vane Bracket',
+    [Part.Vane_Bracket_Bottom]: 'Vane Bracket',
+    [Part.Tail_Vane]: 'Vane',
+    [Part.Studs_Frame]: 'Frame Studs',
+  }[partName];
 }
 
 module.exports = OpenAfpmCadVisualization;

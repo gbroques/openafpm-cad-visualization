@@ -34,30 +34,30 @@ A list of object names that **MUST** be present in the `.obj` file.
 
 In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file), object names start with `o` and are delimited with a space on their own line (e.g. `o Coils`). 
 
-1. Coils
-2. StatorResinCast
-3. FrontRotorDisk
-4. FrontRotorResinCast
-5. FrontMagnets
-6. BackRotorDisk
-7. BackRotorResinCast
-8. BackMagnets
-9. Flange
-10. FrontFlangeCover
-11. BackFlangeCover
-12. StubAxleShaft
-13. HubThreads
+1. Stator_Coils
+2. Stator_ResinCast
+3. Rotor_Disk_Front
+4. Rotor_ResinCast_Front
+5. Rotor_Magnets_Front
+6. Rotor_Disk_Back
+7. Rotor_ResinCast_Back
+8. Rotor_Magnets_Back
+9. Hub_Flange
+10. Hub_Flange_Cover_Front
+11. Hub_Flange_Cover_Back
+12. Hub_StubAxleShaft
+13. Studs_Hub
 14. Frame
 15. YawBearing
-16. TailHinge
-17. OuterTailHinge 
-18. TailBoomPipe
-19. TailBoomTriangularBrace
-20. OuterTailHingeHighEndStop
-21. TopTailVaneBracket
-22. BottomTailVaneBracket
-23. TailVane
-25. StatorMountingStuds
+16. Tail_Hinge_Inner
+17. Tail_Hinge_Outer
+18. Tail_Boom_Pipe
+19. Tail_Boom_Support
+20. Tail_Stop_HighEnd
+21. Vane_Bracket_Top
+22. Vane_Bracket_Bottom
+23. Tail_Vane
+25. Studs_Frame
 
 ## API
 
