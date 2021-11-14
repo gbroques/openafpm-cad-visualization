@@ -10,6 +10,6 @@ export default function findMeshes(part) {
   return meshes.filter((m) => m);
 }
 
-function findMesh(part) {
+export function findMesh(part) {
   return part.children.find((c) => c.name.endsWith('Mesh'));
 }

@@ -4,9 +4,10 @@
 //       and make code more flexible. debug can be passed in options.
 //       Should this be named development?
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+import CameraControls from 'camera-controls';
+
 import makeGroupWiresTogether from './makeGroupWiresTogether';
 import Material from './material';
 import debounce from './debounce';
@@ -14,10 +15,11 @@ import createTooltip from './tooltip';
 import flattenObject from './flattenObject';
 import createLoadingScreen from './loading';
 import transformsToMatrix4 from './transformsToMatrix4';
-import findMeshes from './findMeshes';
+import findMeshes, { findMesh } from './findMeshes';
 import Part from './part';
+import ViewCube from './viewCube';
 
-const DEFAULT_ORBIT_CONTROLS_X = -1100;
+CameraControls.install({ THREE });
 
 /**
  * Duplicated in openafpm-cad-core.
@@ -51,11 +53,13 @@ class OpenAfpmCadVisualization {
 
     this._camera = createCamera(width, height);
     this._renderer = createRenderer(width, height);
-    this._orbitControls = createOrbitControls(
+
+    this._cameraControls = createCameraControls(
       this._camera,
       this._renderer.domElement,
       () => this._render(),
     );
+    this._clock = new THREE.Clock();
     this._windTurbine = {};
     this._controller = { Explode: 0, Furl: 0 };
     this._resetController = () => {
@@ -70,6 +74,13 @@ class OpenAfpmCadVisualization {
     this.handleMouseMove = debounce(this._handleMouseMove, 15);
     // Use mutable array to keep track of visible meshes for tooltip performance.
     this._visibleMeshes = [];
+
+    const rotateCameraTo = ({ azimuthAngle, polarAngle }) => {
+      const enableTransition = false;
+      this._cameraControls.rotateTo(azimuthAngle, polarAngle, enableTransition);
+      this._render();
+    };
+    this._viewCube = new ViewCube(this._camera, rotateCameraTo);
 
     this._scene = new THREE.Scene();
 
@@ -122,8 +133,9 @@ class OpenAfpmCadVisualization {
           const container = createAppContainer(opacityDuration);
           parts.forEach((part) => {
             const material = getMaterial(part.name);
-            const mesh = part.children.find((c) => c.name.endsWith('Mesh'));
+            const mesh = findMesh(part);
             this._visibleMeshes.push(mesh);
+
             mesh.material = material;
             if (TAIL_PARTS.has(part.name)) {
               part.matrix = tailMatrixInverse;
@@ -136,10 +148,10 @@ class OpenAfpmCadVisualization {
           });
           this._scene.add(this._tail);
           this._windTurbine.Tail = this._tail;
-
-          const handleRender = debounce(() => this._render(), 5);
+          const updateCameraControls = false;
+          const handleRender = debounce(() => this._render(updateCameraControls), 5);
           const [gui, cleanUpGui] = createGUI(
-            this._orbitControls,
+            this._cameraControls,
             this._windTurbine,
             this._visibleMeshes,
             this._controller,
@@ -151,7 +163,7 @@ class OpenAfpmCadVisualization {
           rootDomElement.appendChild(container);
           this._mount(container, gui.domElement);
           container.style.opacity = '1';
-          this._orbitControls.update();
+          this._cameraControls.update();
           this._render();
         }, opacityDuration);
       }).catch(console.error);
@@ -160,7 +172,7 @@ class OpenAfpmCadVisualization {
   resize(width, height) {
     this._camera.aspect = width / height;
     this._camera.updateProjectionMatrix();
-    this._orbitControls.update();
+    this._cameraControls.setViewport(0, 0, width, height);
     this._renderer.setSize(width, height);
     this._render();
   }
@@ -202,6 +214,7 @@ class OpenAfpmCadVisualization {
     rootDomElement.appendChild(guiContainer);
     rootDomElement.appendChild(this._renderer.domElement);
     rootDomElement.appendChild(this._tooltip);
+    rootDomElement.appendChild(this._viewCube.domElement);
   }
 
   /**
@@ -223,15 +236,23 @@ class OpenAfpmCadVisualization {
       }
     });
     this._renderer.dispose();
+    this._cameraControls.dispose();
   }
 
-  _render() {
+  _render(updateCameraControls = true) {
+    // update camera controls conditionally to avoid
+    // visual jumping when toggling the visibility of parts.
+    if (updateCameraControls) {
+      const delta = this._clock.getDelta();
+      this._cameraControls.update(delta);
+    }
     if (this._isWindTurbineLoaded()) {
       const tailHingeExplosionFactor = -8;
       this._furl(tailHingeExplosionFactor);
       this._explode(tailHingeExplosionFactor);
     }
     this._renderer.render(this._scene, this._camera);
+    this._viewCube.update();
   }
 
   _isWindTurbineLoaded() {
@@ -240,7 +261,11 @@ class OpenAfpmCadVisualization {
 
   _furl(tailHingeExplosionFactor) {
     const furlAngle = this._controller.Furl * (Math.PI / 180);
+    // the 2nd furl transform is the hinge
     this._furlTransforms[1].angle = furlAngle;
+    // TODO: transformsToMatrix4 creates many Matrix4 instances per render.
+    //       Consider reworking this to mutate a single Matrix4 instance,
+    //       for memory performance.
     const transform = transformsToMatrix4(this._furlTransforms);
     const explodeVector = this._getExplosionVector(tailHingeExplosionFactor);
     explodeVector.add(this._tailCenter);
@@ -314,7 +339,8 @@ function createCamera(width, height) {
     near,
     far,
   );
-  camera.position.set(1000, 150, -2000);
+  camera.up = new THREE.Vector3(0, 1, 0); // default in Three.js
+  camera.position.set(1800, 150, -700);
   return camera;
 }
 
@@ -332,12 +358,15 @@ function createRenderer(width, height) {
   return renderer;
 }
 
-function createOrbitControls(camera, domElement, onChange) {
-  const controls = new OrbitControls(camera, domElement);
+/**
+ * @see https://github.com/yomotsu/camera-controls
+ */
+function createCameraControls(camera, domElement, onChange) {
+  const controls = new CameraControls(camera, domElement);
   controls.maxDistance = 5000;
   controls.minDistance = 250;
-  controls.target.set(DEFAULT_ORBIT_CONTROLS_X, 0, 0);
-  controls.addEventListener('change', onChange);
+  controls.addEventListener('control', onChange);
+  controls.addEventListener('transitionstart', onChange);
   return controls;
 }
 
@@ -394,7 +423,7 @@ function getMaterial(partName) {
 }
 
 function createGUI(
-  orbitControls,
+  cameraControls,
   windTurbine,
   visibleMeshes,
   controller,
@@ -405,9 +434,9 @@ function createGUI(
 
   const obj = {
     'Reset View': () => {
-      orbitControls.target.set(DEFAULT_ORBIT_CONTROLS_X, 0, 0);
-      orbitControls.object.position.set(1000, 150, -2000);
-      orbitControls.update();
+      cameraControls.reset(false);
+      cameraControls.update();
+      onControllerChange();
     },
   };
   gui.add(obj, 'Reset View');

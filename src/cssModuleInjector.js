@@ -24,19 +24,34 @@ export default class CssModuleInjector {
     return classes;
   }
 
+  // https://css-tricks.com/css-ruleset-terminology/
   _fromStylesObjectToCss(styles) {
-    return Object.values(styles)
-      .map((object, index) => (
-        `.${this._namespace + index} {\n${
-          fromObjectToCssBlock(object)
-        }}\n`
-      )).join('\n');
+    return Object.entries(styles)
+      .map(([classKey, object], index) => {
+        const className = `${this._namespace}-${index}-${classKey}`;
+
+        // https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes
+        const [pseudoClassEntries, entries] = partition(
+          Object.entries(object),
+          (entry) => entry[0].startsWith('&:'),
+        );
+        const classesObject = Object.fromEntries(entries);
+        const ruleset = toClassRuleset(className, classesObject);
+        const pseudoClassRulesets = pseudoClassEntries.map(([key, value]) => (
+          toClassRuleset(key.replace('&', className), value)
+        ));
+        const rulesets = [ruleset].concat(pseudoClassRulesets);
+        return rulesets.join('');
+      }).join('');
   }
 
   _fromStylesObjectToClassesObject(styles) {
     return Object.keys(styles)
       .reduce((classesAccumulator, className, index) => (
-        { ...classesAccumulator, [className]: this._namespace + index }
+        {
+          ...classesAccumulator,
+          [className]: `${this._namespace}-${index}-${className}`,
+        }
       ), {});
   }
 }
@@ -54,9 +69,30 @@ function injectCss(cssContent) {
   }
 }
 
-function fromObjectToCssBlock(object, indentationLevel = 2) {
-  const indentation = [...Array(indentationLevel)].map(() => ' ').join('');
+function toClassRuleset(className, classesObject) {
+  return `.${className} {\n${
+    fromObjectToDeclarationBlock(classesObject)
+  }}\n`;
+}
+
+function fromObjectToDeclarationBlock(object, indentationLevel = 2) {
+  const indentation = generateIndentation(indentationLevel);
   return `${Object.entries(object)
     .map((entry) => indentation + entry.join(': '))
     .join(';\n')};\n`;
+}
+
+function generateIndentation(level) {
+  return (
+    [...Array(level)]
+      .map(() => ' ')
+      .join('')
+  );
+}
+
+function partition(array, predicate) {
+  return [
+    array.filter(predicate),
+    array.filter((e) => !predicate(e)),
+  ];
 }

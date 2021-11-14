@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import CssModuleInjector from './cssModuleInjector';
 
-const CSS_NAMESPACE = 'openafpm';
+const CSS_NAMESPACE = 'openafpm-tooltip';
 
 const styles = {
   tooltip: {

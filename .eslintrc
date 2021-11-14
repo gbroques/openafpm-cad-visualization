@@ -9,6 +9,10 @@
                     "allowAfterThisConstructor": true,
                     "allowAfterThis": true
                 }
-        ]
+        ],
+        "no-multi-assign": "off",
+        "default-case": "off",
+        "one-var": "off",
+        "one-var-declaration-per-line": "off"
     }
 }

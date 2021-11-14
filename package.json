@@ -14,7 +14,8 @@
   "author": "G Roques",
   "license": "LGPL-2.1-or-later",
   "dependencies": {
-    "three": "^0.125.2"
+    "camera-controls": "^1.33.1",
+    "three": "^0.133.1"
   },
   "devDependencies": {
     "esbuild": "^0.8.54",
