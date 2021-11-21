@@ -247,9 +247,9 @@ class OpenAfpmCadVisualization {
       this._cameraControls.update(delta);
     }
     if (this._isWindTurbineLoaded()) {
-      const tailHingeExplosionFactor = -8;
+      const tailHingeExplosionFactor = -10.5;
       this._furl(tailHingeExplosionFactor);
-      this._explode(tailHingeExplosionFactor);
+      this._explode();
     }
     this._renderer.render(this._scene, this._camera);
     this._viewCube.update();
@@ -273,7 +273,7 @@ class OpenAfpmCadVisualization {
     this._tail.matrix = transform;
   }
 
-  _explode(tailHingeExplosionFactor) {
+  _explode() {
     const statorExlosionFactor = 0;
     this._explodeAlongAlternatorTilt(Part.Stator_ResinCast, statorExlosionFactor);
     this._explodeAlongAlternatorTilt(Part.Stator_Coils, statorExlosionFactor);
@@ -298,7 +298,7 @@ class OpenAfpmCadVisualization {
     this._explodeAlongAlternatorTilt(Part.Studs_Frame, frameExplosionFactor);
 
     this._explodeAlongAlternatorTilt(Part.YawBearing, -7);
-    this._explodeAlongAlternatorTilt(Part.Tail_Hinge_Inner, tailHingeExplosionFactor);
+    this._explodeAlongAlternatorTilt(Part.Tail_Hinge_Inner, -8.25);
   }
 
   _explodeAlongAlternatorTilt(property, explosionFactor) {
