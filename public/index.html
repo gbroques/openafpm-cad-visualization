@@ -66,21 +66,29 @@
                 windTurbineVisualization.cleanUp();
             };
         }
-        let furlTransformsByObjUrl = null;
+        let furlTransformsByVariant = null;
         let cleanUp = null;
         fetch('furlTransforms.json')
             .then(r => r.json())
             .then(furlTransforms => {
-                furlTransformsByObjUrl = furlTransforms;
-                cleanUp = loadTurbine('t-shape.obj', furlTransforms['t-shape.obj'])
+                furlTransformsByVariant = furlTransforms;
+                cleanUp = loadTurbine('t-shape.obj', getFurlTransforms('t-shape.obj'))
             });
+        function getFurlTransforms(objUrl) {
+            const variant = {
+                't-shape.obj': 'T Shape',
+                'h-shape.obj': 'H Shape',
+                'star-shape.obj': 'Star Shape'
+            }[objUrl];
+            return furlTransformsByVariant[variant];
+        }
         const select = document.getElementsByTagName('select')[0];
         select.addEventListener('change', event => {
             const selectedObjUrl = event.target.value;
             const container = document.getElementById('container');
             container.innerHTML = '';
             cleanUp();
-            const furlTransforms = furlTransformsByObjUrl[selectedObjUrl];
+            const furlTransforms =  getFurlTransforms(selectedObjUrl);
             cleanUp = loadTurbine(selectedObjUrl, furlTransforms);
         });
     </script>
