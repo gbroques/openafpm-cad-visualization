@@ -364,7 +364,11 @@ function createCamera(width, height) {
  * Consider adding a "set" or "populate scene" method.
  */
 function createRenderer(width, height) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    logarithmicDepthBuffer: true,
+  });
   renderer.setSize(width, height);
   return renderer;
 }
