@@ -31,6 +31,8 @@ CameraControls.install({ THREE });
  */
 const ALTERNATOR_TILT_ANGLE = 4 * (Math.PI / 180);
 
+const APPOXIMATE_LENGTH_OF_T_SHAPE_ALONG_X_AXIS = 2000;
+
 const TAIL_PARTS = new Set([
   Part.Tail_Hinge_Outer,
   Part.Tail_Boom_Pipe,
@@ -131,6 +133,7 @@ class OpenAfpmCadVisualization {
         setTimeout(() => {
           rootDomElement.removeChild(loadingScreen);
           const container = createAppContainer(opacityDuration);
+          this._lengthAlongXAxis = calculateLengthAlongXAxis(parts);
           parts.forEach((part) => {
             const material = getMaterial(part.name);
             const mesh = findMesh(part);
@@ -267,7 +270,8 @@ class OpenAfpmCadVisualization {
     //       Consider reworking this to mutate a single Matrix4 instance,
     //       for memory performance.
     const transform = transformsToMatrix4(this._furlTransforms);
-    const explodeVector = this._getExplosionVector(tailHingeExplosionFactor);
+    const baseExplosionFactor = this._calculateBaseExplosionFactor();
+    const explodeVector = this._getExplosionVector(baseExplosionFactor * tailHingeExplosionFactor);
     explodeVector.add(this._tailCenter);
     transform.setPosition(explodeVector);
     this._tail.matrix = transform;
@@ -303,9 +307,16 @@ class OpenAfpmCadVisualization {
 
   _explodeAlongAlternatorTilt(property, explosionFactor) {
     if (this._windTurbine[property]) {
-      const explosionVector = this._getExplosionVector(explosionFactor);
+      const baseExplosionFactor = this._calculateBaseExplosionFactor();
+      const explosionVector = this._getExplosionVector(baseExplosionFactor * explosionFactor);
       this._windTurbine[property].position.copy(explosionVector);
     }
+  }
+
+  _calculateBaseExplosionFactor() {
+    return (
+      this._lengthAlongXAxis / APPOXIMATE_LENGTH_OF_T_SHAPE_ALONG_X_AXIS
+    );
   }
 
   _getExplosionVector(explosionFactor) {
@@ -595,6 +606,39 @@ function getLabel(partName) {
     [Part.Tail_Vane]: 'Vane',
     [Part.Studs_Frame]: 'Frame Studs',
   }[partName];
+}
+
+function calculateLengthAlongXAxis(parts) {
+  const boundingBox = calculateBoundingBox(parts);
+  const size = new THREE.Vector3();
+  boundingBox.getSize(size);
+  return size.x;
+}
+
+function calculateBoundingBox(parts) {
+  const meshes = parts.map(findMesh);
+  let minX = 0;
+  let minY = 0;
+  let minZ = 0;
+  let maxX = 0;
+  let maxY = 0;
+  let maxZ = 0;
+  meshes.forEach((mesh) => {
+    mesh.geometry.computeBoundingBox();
+    const bBox = mesh.geometry.boundingBox;
+
+    // compute overall bbox
+    minX = Math.min(minX, bBox.min.x);
+    minY = Math.min(minY, bBox.min.y);
+    minZ = Math.min(minZ, bBox.min.z);
+    maxX = Math.max(maxX, bBox.max.x);
+    maxY = Math.max(maxY, bBox.max.y);
+    maxZ = Math.max(maxZ, bBox.max.z);
+  });
+
+  const boundingBoxMin = new THREE.Vector3(minX, minY, minZ);
+  const boundingBoxMax = new THREE.Vector3(maxX, maxY, maxZ);
+  return new THREE.Box3(boundingBoxMin, boundingBoxMax);
 }
 
 module.exports = OpenAfpmCadVisualization;
