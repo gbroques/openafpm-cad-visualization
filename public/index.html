@@ -7,25 +7,110 @@
     <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
     <title>OpenAFPM CAD Visualization</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        :root {
+            --spacing: 8px;
+            --main-color: #43A047; /* Green 600 from https://www.materialui.co/colors */
+            --main-color-shade: #388E3C; /* Green 700 from https://www.materialui.co/colors */
+            --header-height: 64px;
+            --navigation-rail-width: 80px;
+        }
+        html, body {
+            height: 100%;
+        }
         body {
             margin: 0;
             font-family: sans-serif;
             font-size: 16px;
+            overflow: hidden;
         }
         header {
             display: flex;
+            height: var(--header-height);
             justify-content: space-between;
             align-items: center;
-            background-color: #43A047;
+            background-color: var(--main-color);
             color: white;
             font-weight: bold;
             font-size: 1.125rem;
-            padding: 16px;
+            padding: calc(var(--spacing) * 2);
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
         }
         select {
             padding: 4px;
             font-size: 1.125rem;
+        }
+        #dxf-preview {
+            display: none;
+        }
+        .dxf-preview-button {
+            background-color: var(--main-color);
+            transition: background-color 250ms ease-in-out;
+            color: white;
+            border-radius: 50%;
+            font-size: 1.25rem;
+            font-weight: 700;
+            width: 80px;
+            height: 80px;
+            border: none;
+            cursor: pointer;
+            position: fixed;
+            bottom: calc(var(--spacing) * 4);
+            right: calc(var(--spacing) * 4);
+            box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%),
+                        0px 6px 10px 0px rgb(0 0 0 / 14%),
+                        0px 1px 18px 0px rgb(0 0 0 / 12%);
+        }
+        .dxf-preview-button:hover {
+            background-color: var(--main-color-shade);
+        }
+        .dxf-preview-container {
+            padding-left: calc(var(--spacing) * 4);
+            padding-right: calc(var(--spacing) * 4);
+        }
+        .navigation-rail {
+            width: var(--navigation-rail-width);
+            box-shadow: 3px 0px 5px rgb(0 0 0 / 10%);
+        }
+        .main-content {
+            width: calc(100% - var(--navigation-rail-width));
+        }
+        .navigation-rail-button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+        }
+        .navigation-rail-button svg {
+            width: 100%;
+            height: auto;
+            fill: #9E9E9E; /* Grey 600 from https://www.materialui.co/colors */
+            transition: fill 250ms ease-in-out;
+        }
+        .navigation-rail-button:active svg {
+            fill: #1B5E20; /* Green 900 from https://www.materialui.co/colors */
+        }
+        main {
+            display: flex;
+            width: 100%;
+        }
+        .navigation-rail-button-active svg {
+            fill: var(--main-color-shade);
+        }
+        .container {
+            width: 100%;
+            height: calc(100% - var(--header-height));
+            display: flex;
+        }
+        #container {
+            width: 100%;
+        }
+        #dxf-preview {
+            width: 100%;
+            overflow-y: scroll;
         }
     </style>
 </head>
@@ -38,21 +123,58 @@
             <option value="star-shape.obj">Star Shape</option>
         </select>
     </header>
-    <div id="container"></div>
+    <div class="container">
+        <nav class="navigation-rail">
+            <button title="Visualize" class="navigation-rail-button ripple navigation-rail-button-active" onclick="handleNavigationRailButtonClick(event)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="752pt" height="752pt" version="1.1" viewBox="0 0 752 752">
+                    <g>
+                     <path d="m376 264.12c-125.3 0-226.92 111.88-226.92 111.88s101.62 111.88 226.93 111.88c125.3 0.003907 226.92-111.88 226.92-111.88s-101.62-111.88-226.93-111.88zm0 202.36c-49.922 0-90.473-40.453-90.473-90.473 0-50.023 40.453-90.473 90.473-90.473 50.023 0 90.473 40.453 90.473 90.473 0.003906 50.02-40.547 90.473-90.473 90.473z"/>
+                     <path d="m425.63 350.25c0.097656 1.0859 0.29688 2.1719 0.29688 3.3555 0 14.996-12.137 27.133-27.133 27.133-14.996 0-27.133-12.137-27.133-27.133 0-14.996 12.137-27.133 27.133-27.133 1.3828 0 2.6641 0.19922 3.9453 0.39453-7.9922-4.3398-17.168-6.9062-26.934-6.9062-30.883 0-55.941 25.059-55.941 55.941 0 30.883 25.059 55.941 55.941 55.941 30.883 0 55.941-25.059 55.941-55.941 0.19531-9.1758-2.0703-17.859-6.1172-25.652z"/>
+                    </g>
+                </svg>
+            </button>
+            <button title="Preview DXF" class="navigation-rail-button ripple" onclick="handleNavigationRailButtonClick(event)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="752pt" height="752pt" version="1.1" viewBox="0 0 752 752">
+                    <g>
+                        <path d="m290.32 385.22h-11.98v61.523h11.98c8.6133 0.77734 17.145-2.1797 23.426-8.1211s9.7109-14.293 9.4141-22.938c0.36719-8.6094-3.0625-16.953-9.3828-22.816-6.3203-5.8633-14.895-8.6602-23.457-7.6484z"/>
+                        <path d="m538.79 242.81h-147.99c-9.3164 0-18.09-4.3867-23.68-11.84l-26.637-35.52c-5.5898-7.4531-14.363-11.84-23.68-11.84h-103.6c-7.8477 0-15.379 3.1172-20.93 8.668-5.5508 5.5508-8.668 13.082-8.668 20.93v325.59c0 7.8516 3.1172 15.379 8.668 20.93 5.5508 5.5508 13.082 8.6719 20.93 8.6719h325.59c7.8516 0 15.379-3.1211 20.93-8.6719 5.5508-5.5508 8.6719-13.078 8.6719-20.93v-266.39c0-7.8516-3.1211-15.379-8.6719-20.93-5.5508-5.5508-13.078-8.668-20.93-8.668zm-248.32 221.99h-21.895c-2.7344 0.09375-5.3828-0.95312-7.3203-2.8867-1.9336-1.9336-2.9766-4.5859-2.8828-7.3203v-77.219c-0.09375-2.7344 0.94922-5.3828 2.8828-7.3164 1.9375-1.9336 4.5859-2.9805 7.3203-2.8867h21.895c13.656-1.3594 27.246 3.1523 37.379 12.406 10.133 9.2578 15.848 22.387 15.719 36.109 0.082031 13.762-5.6211 26.918-15.723 36.262-10.102 9.3398-23.664 14.004-37.375 12.852zm125.78 1.7773c-3.1992-0.070313-6.168-1.6641-7.9922-4.293l-21.594-30.609-21.75 30.609c-2.4102 3.5547-6.8594 5.1211-10.969 3.8633-4.1055-1.2578-6.9141-5.0469-6.9219-9.3398 0.16406-2.6445 1.1445-5.1758 2.8008-7.2422l24.699-34.469-22.617-32.691c-1.7031-2.2148-2.6836-4.8984-2.8164-7.6914 0.1875-5.2422 4.5234-9.375 9.7695-9.3203 3.3477-0.070312 6.4883 1.6094 8.2812 4.4375l19.527 28.703 19.957-28.543c1.8203-2.8203 4.9258-4.543 8.2812-4.5977 2.5508-0.042969 5.0156 0.92969 6.8477 2.707 1.8359 1.7734 2.8867 4.207 2.9219 6.7578-0.11328 2.9141-1.1484 5.7109-2.9648 7.9922l-22.922 32.242 24.699 34.918 0.003906 0.003906c1.5938 1.9766 2.5234 4.4102 2.6562 6.9492-0.12891 5.3672-4.5312 9.6406-9.8984 9.6133zm78.578-81.352-36.246-0.003906v24.41h28.254c2.418-0.042968 4.7539 0.89063 6.4805 2.5859 1.7266 1.6953 2.6992 4.0117 2.6992 6.4336 0 2.418-0.97266 4.7383-2.6992 6.4336-1.7266 1.6953-4.0625 2.6289-6.4805 2.5859h-28.254v28.703c0.058594 2.6836-0.96484 5.2773-2.8438 7.1992-1.8789 1.918-4.4492 3-7.1367 3-2.6836 0-5.2578-1.082-7.1367-3-1.875-1.9219-2.9023-4.5156-2.8438-7.1992v-79c-0.09375-2.7344 0.95312-5.3828 2.8867-7.3164s4.5859-2.9805 7.3164-2.8867h46.004c2.4336-0.09375 4.7969 0.82031 6.5352 2.5273 1.7344 1.707 2.6836 4.0586 2.6289 6.4922 0.007812 2.4219-0.95703 4.7422-2.6836 6.4414-1.7227 1.6992-4.0586 2.6328-6.4805 2.5898z"/>
+                    </g>
+                </svg>
+            </button>
+        </nav>
+        <main class="main-content">
+            <div id="container"></div>
+            <div id="dxf-preview">
+                <div class="dxf-preview-container">
+                    <dxf-preview url="dxfPreview.json" variant="T Shape" />
+                </div>
+            </div>
+            <!--https://material.io/components/navigation-rail#anatomy-->
+            <!--https://thenounproject.com/icon/folder-dxf-3438480/-->
+            <!-- <button class="dxf-preview-button" title="DXF Preview" onclick="handleDxfPreviewClick(event)">
+                DXF
+            </button> -->
+        </main>
+    </div>
 	<script src="openafpm-cad-visualization.js"></script>
     <script>
         const header = document.getElementsByTagName('header')[0];
         const headerHeight = header.offsetHeight;
         function loadTurbine(objUrl, furlTransforms) {
-            const windTurbineVisualization = new OpenAfpmCadVisualization({
+            const navigationRailWidth = parseInt(getComputedStyle(document.documentElement)
+                .getPropertyValue('--navigation-rail-width'));
+            const windTurbineVisualization = new OpenAfpm.CadVisualization({
                 objUrl,
                 rootDomElement: document.getElementById('container'),
-                width: window.innerWidth,
+                width: window.innerWidth - navigationRailWidth,
                 height: window.innerHeight - headerHeight,
                 furlTransforms
             });
             const handleResize = () => {
-                windTurbineVisualization.resize(window.innerWidth, window.innerHeight - headerHeight)
+                windTurbineVisualization.resize(
+                    window.innerWidth - navigationRailWidth,
+                    window.innerHeight - headerHeight
+                );
             };
             window.addEventListener('resize', handleResize, false);
 
@@ -91,6 +213,26 @@
             const furlTransforms =  getFurlTransforms(selectedObjUrl);
             cleanUp = loadTurbine(selectedObjUrl, furlTransforms);
         });
+
+
+        window.customElements.define('dxf-preview', OpenAfpm.DxfPreview);
+        function handleNavigationRailButtonClick(event) {
+            const activeClass = 'navigation-rail-button-active';
+            const button = event.path.find(element => element instanceof HTMLButtonElement);
+            const currentlyActiveButton = Array.prototype.find.call(
+                button.parentElement.children, c => c.classList.contains(activeClass));
+            currentlyActiveButton.classList.remove(activeClass);
+            button.classList.add(activeClass);
+            const dxfPreview = document.getElementById('dxf-preview');
+            const container = document.getElementById('container');
+            if (button.title === "Preview DXF") {
+                dxfPreview.style.display = 'block';
+                container.style.display = 'none';
+            } else {
+                dxfPreview.style.display = 'none';
+                container.style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>
