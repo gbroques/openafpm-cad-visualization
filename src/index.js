@@ -571,7 +571,9 @@ function handleProgress(xhr) {
 
 function createAppContainer(opacityDuration) {
   const container = window.document.createElement('div');
-  container.style = `opacity: 0; transition: opacity ${opacityDuration}ms ease-in-out;`;
+  container.style = 'opacity: 0;'
+    + `transition: opacity ${opacityDuration}ms ease-in-out;`
+    + 'position: relative';
   return container;
 }
 

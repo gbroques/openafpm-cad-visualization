@@ -4,20 +4,24 @@ import CssModuleInjector from './cssModuleInjector';
 
 const CSS_NAMESPACE = 'openafpm-view-cube';
 
+const SIZE = '110px';
+const MARGIN = '10px';
+const INNER_SIZE = `calc(${SIZE} - ${MARGIN} * 2)`;
+
 const styles = {
   viewCube: {
-    width: '120px',
-    height: '120px',
-    margin: '10px',
+    width: SIZE,
+    height: SIZE,
+    margin: MARGIN,
     perspective: '400px',
     position: 'absolute',
-    left: '40px',
-    bottom: '20px',
+    left: '2%',
+    bottom: '1%',
     'z-index': '2',
   },
   cube: {
-    width: '100px',
-    height: '100px',
+    width: INNER_SIZE,
+    height: INNER_SIZE,
     position: 'relative',
     'transform-style': 'preserve-3d',
     transform: 'translateZ(-300px)',
@@ -28,11 +32,11 @@ const styles = {
     'justify-content': 'center',
     'align-items': 'center',
     position: 'absolute',
-    width: '120px',
-    height: '120px',
+    width: SIZE,
+    height: SIZE,
     border: '2px solid #7d7d7d',
-    'line-height': '100px',
-    'font-size': '25px',
+    'line-height': INNER_SIZE,
+    'font-size': '24px',
     'font-weight': 'bold',
     color: '#7d7d7d',
     'text-align': 'center',
@@ -46,22 +50,22 @@ const styles = {
     },
   },
   front: {
-    transform: 'rotateY(90deg) rotateX(180deg) translateZ(-60px)',
+    transform: `rotateY(90deg) rotateX(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
   right: {
-    transform: 'rotateZ(180deg) translateZ(-60px)',
+    transform: `rotateZ(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
   back: {
-    transform: 'rotateY(-90deg) rotateX(180deg) translateZ(-60px)',
+    transform: `rotateY(-90deg) rotateX(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
   left: {
-    transform: 'rotateX(180deg) translateZ(-60px)',
+    transform: `rotateX(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
   top: {
-    transform: 'rotateX(90deg) rotateZ(180deg) translateZ(-60px)',
+    transform: `rotateX(90deg) rotateZ(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
   bottom: {
-    transform: 'rotateX(270deg) rotateZ(180deg) translateZ(-60px)',
+    transform: `rotateX(270deg) rotateZ(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
 };
 
