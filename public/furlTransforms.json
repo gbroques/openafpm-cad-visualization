@@ -1,5 +1,5 @@
 {
-  "T Shape": [
+  "t-shape": [
     {
       "name": "parent",
       "position": [-139.379, -142.5, -133.797],
@@ -19,7 +19,7 @@
       "angle": 0.349066
     }
   ],
-  "H Shape": [
+  "h-shape": [
     {
       "name": "parent",
       "position": [-386.775, -322.066, -262.762],
@@ -39,7 +39,7 @@
       "angle": 0.261799
     }
   ],
-  "Star Shape": [
+  "star-shape": [
     {
       "name": "parent",
       "position": [-517.415, -378.523, -364.39],

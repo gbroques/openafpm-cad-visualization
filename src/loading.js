@@ -1,5 +1,6 @@
 /* eslint-env browser */
 function createLoadingScreen(
+  rootDomElement,
   opacityDuration,
   windowHeight,
   color = '#323232',
@@ -31,7 +32,20 @@ function createLoadingScreen(
   p.textContent = 'LOADING';
   container.appendChild(p);
 
-  return container;
+  return {
+    showLoadingScreen: () => {
+      rootDomElement.appendChild(container);
+    },
+    hideLoadingScreen: (...args) => {
+      container.style.opacity = 0;
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          rootDomElement.removeChild(container);
+          resolve(...args);
+        }, opacityDuration);
+      });
+    },
+  };
 }
 
 /**

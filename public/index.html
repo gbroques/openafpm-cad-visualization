@@ -32,65 +32,82 @@
 <body>
     <header>
         OpenAFPM CAD Visualization
-        <select name="variant">
-            <option value="t-shape.obj">T Shape</option>
-            <option value="h-shape.obj">H Shape</option>
-            <option value="star-shape.obj">Star Shape</option>
-        </select>
+        <div>
+            <select name="variant">
+                <option value="t-shape">T Shape</option>
+                <option value="h-shape">H Shape</option>
+                <option value="star-shape">Star Shape</option>
+            </select>
+            <select name="assembly">
+                <option value="wind-turbine">Wind Turbine</option>
+                <option value="stator-mold">Stator Mold</option>
+                <option value="rotor-mold">Rotor Mold</option>
+                <option value="coil-winder">Coil Winder</option>
+            </select>
+        </div>
+        
     </header>
     <div id="container"></div>
 	<script src="openafpm-cad-visualization.js"></script>
     <script>
         const header = document.getElementsByTagName('header')[0];
         const headerHeight = header.offsetHeight;
-        function loadTurbine(objUrl, furlTransforms) {
-            const windTurbineVisualization = new OpenAfpmCadVisualization({
-                objUrl,
-                rootDomElement: document.getElementById('container'),
-                width: window.innerWidth,
-                height: window.innerHeight - headerHeight,
-                furlTransforms
-            });
-            const handleResize = () => {
-                windTurbineVisualization.resize(window.innerWidth, window.innerHeight - headerHeight)
-            };
-            window.addEventListener('resize', handleResize, false);
+        const openAfpmCadVisualization = new OpenAfpmCadVisualization({
+            rootDomElement: document.getElementById('container'),
+            width: window.innerWidth,
+            height: window.innerHeight - headerHeight
+        });
+        const handleResize = () => {
+            openAfpmCadVisualization.resize(window.innerWidth, window.innerHeight - headerHeight)
+        };
+        window.addEventListener('resize', handleResize, false);
 
+        function loadAssembly(objUrl, type, transformsByName = {}) {
+            openAfpmCadVisualization.visualize(objUrl, type, transformsByName);
             const handleMouseMove = (event) => {
-                windTurbineVisualization.handleMouseMove(event)
+                openAfpmCadVisualization.handleMouseMove(event)
             };
             window.addEventListener('mousemove', handleMouseMove, false);
-            return () => {
-                window.removeEventListener('resize', handleResize);
-                window.removeEventListener('mousemove', handleMouseMove);
-                windTurbineVisualization.cleanUp();
-            };
+            return () => window.removeEventListener('mousemove', handleMouseMove);
         }
         let furlTransformsByVariant = null;
+        const state = {
+            variant: 't-shape',
+            assembly: 'wind-turbine'
+        };
+        const setState = nextState => Object.assign(state, nextState);
         let cleanUp = null;
         fetch('furlTransforms.json')
             .then(r => r.json())
             .then(furlTransforms => {
                 furlTransformsByVariant = furlTransforms;
-                cleanUp = loadTurbine('t-shape.obj', getFurlTransforms('t-shape.obj'))
+                const objUrl = getObjUrl(state);
+                cleanUp = loadAssembly(
+                    objUrl,
+                    'WindTurbine',
+                    {furl: furlTransformsByVariant[state.variant]}
+                );
             });
-        function getFurlTransforms(objUrl) {
-            const variant = {
-                't-shape.obj': 'T Shape',
-                'h-shape.obj': 'H Shape',
-                'star-shape.obj': 'Star Shape'
-            }[objUrl];
-            return furlTransformsByVariant[variant];
+        function getObjUrl(state) {
+            return state.variant + '/' + state.assembly + '.obj';
         }
-        const select = document.getElementsByTagName('select')[0];
-        select.addEventListener('change', event => {
-            const selectedObjUrl = event.target.value;
+        function handleSelect(event) {
+            const {name, value} = event.target;
+            setState({[name]: value});
             const container = document.getElementById('container');
             container.innerHTML = '';
-            cleanUp();
-            const furlTransforms =  getFurlTransforms(selectedObjUrl);
-            cleanUp = loadTurbine(selectedObjUrl, furlTransforms);
-        });
+            const furlTransforms = furlTransformsByVariant[state.variant];
+            const objUrl = getObjUrl(state);
+            const isWindTurbine = state.assembly === 'wind-turbine';
+            const type = isWindTurbine ? 'WindTurbine' : 'Tool';
+            const transformsByName = isWindTurbine ? { furl: furlTransforms } : {};
+            if (cleanUp) cleanUp();
+            cleanUp = loadAssembly(objUrl, type, transformsByName);
+        }
+        const variantSelect = document.querySelector('select[name="variant"]');
+        variantSelect.addEventListener('change', handleSelect);
+        const assemblySelect = document.querySelector('select[name="assembly"]');
+        assemblySelect.addEventListener('change', handleSelect);
     </script>
 </body>
 </html>

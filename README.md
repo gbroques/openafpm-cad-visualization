@@ -28,9 +28,9 @@ Install [Node.js](https://nodejs.org/en/).
 
 Additionally, on UNIX-like operating systems, you can run `npm start`; which runs `npm run watch` and `npm run serve` in parallel.
 
-## Object Names
+## Wind Turbine Object Names
 
-A list of object names that **MUST** be present in the `.obj` file.
+A list of object names that **MUST** be present in the `.obj` file for the Wind Turbine.
 
 In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file), object names start with `o` and are delimited with a space on their own line (e.g. `o Coils`). 
 
@@ -67,23 +67,33 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 
 Construct a new OpenAFPM CAD visualization instance.
 
+Behind the scenes constructs a [WebGLRenderer](https://threejs.org/docs/?q=render#api/en/renderers/WebGLRenderer), and a single instance is intended to be used throughout the lifetime of various visualizations (i.e. Wind Turbine and tools).
+
 ##### Arguments
 
 |Name|Type|Required|Description|
 |----|----|--------|-----------|
 |`options`|`Object`|`true`|See below rows documenting properties.|
-|`options.objUrl`|`string`|`true`|URL to load [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file.|
 |`options.rootDomElement`|[`Element`](https://developer.mozilla.org/en-US/docs/Web/API/Element)|`true`|DOM element to mount visualization elements to.|
 |`options.width`|`number`|`true`|Width of visualization.|
 |`options.height`|`number`|`true`|Height of visualization.|
-|`options.furlTransforms`|`Array.<Transform>`|`true`|Three element array of `Transform` objects needed to furl the tail. See below table for details.|
+
+#### visualize(objUrl, type, transformsByName)
+
+##### Arguments
+
+|Name|Type|Required|Description|
+|----|----|--------|-----------|
+|`objUrl`|`string`|`true`|URL to load [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file.|
+|`type`|[`string`]|`true`|Type of visualization. Must be one of `"WindTurbine"` or `"Tool"`.|
+|`transformsByName`|`Object.<string, Array.<Transform>`|`true` when `type` === `"WindTurbine"`, `false` otherwise.|When `type` === `"WindTurbine"`, a `"furl"` property must be present containing a three element array of `Transform` objects needed to furl the tail. See below table for details.|
 
 ###### Transform
 
 |Name|Type|Required|Description|
 |----|----|--------|-----------|
 |`transform`|`Object`|`true`|An object representing a 3D transformation in [Axis–angle representation](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation).|
-|`transform.name`|`string`|`false`|Name of transformation (*optional*).|
+|`transform.name`|`string`|`false`|Name of transformation for descriptive purposes. (*optional*).|
 |`transform.position`|`Array.<number>`|`true`|Three element array for x, y, and z coordinates.|
 |`transform.axis`|`Array.<number>`|`true`|Axis of rotation, three element array for x, y, and z axes.|
 |`transform.angle`|`number`|`true`|Angle of rotation (**in radians**).|

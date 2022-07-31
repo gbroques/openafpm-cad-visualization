@@ -13,6 +13,8 @@
         "no-multi-assign": "off",
         "default-case": "off",
         "one-var": "off",
-        "one-var-declaration-per-line": "off"
+        "one-var-declaration-per-line": "off",
+        "class-methods-use-this": "off",
+        "no-param-reassign": "off"
     }
 }

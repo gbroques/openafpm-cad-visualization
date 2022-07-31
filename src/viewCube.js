@@ -49,52 +49,58 @@ const styles = {
       color: '#fff',
     },
   },
-  front: {
+  xPos: {
     transform: `rotateY(90deg) rotateX(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
-  right: {
-    transform: `rotateZ(180deg) translateZ(calc(-${SIZE} / 2))`,
-  },
-  back: {
+  xNeg: {
     transform: `rotateY(-90deg) rotateX(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
-  left: {
-    transform: `rotateX(180deg) translateZ(calc(-${SIZE} / 2))`,
-  },
-  top: {
+  yPos: {
     transform: `rotateX(90deg) rotateZ(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
-  bottom: {
+  yNeg: {
     transform: `rotateX(270deg) rotateZ(180deg) translateZ(calc(-${SIZE} / 2))`,
+  },
+  zPos: {
+    transform: `rotateX(180deg) translateZ(calc(-${SIZE} / 2))`,
+  },
+  zNeg: {
+    transform: `rotateZ(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
 };
 
 const orientation = {
-  front: {
+  xPos: {
     azimuthAngle: Math.PI / 2,
     polarAngle: Math.PI / 2,
   },
-  right: {
-    azimuthAngle: Math.PI,
-    polarAngle: Math.PI / 2,
-  },
-  back: {
+  xNeg: {
     azimuthAngle: -Math.PI / 2,
     polarAngle: Math.PI / 2,
   },
-  left: {
-    azimuthAngle: 0,
-    polarAngle: Math.PI / 2,
-  },
-  top: {
+  yPos: {
     azimuthAngle: Math.PI,
     polarAngle: 0,
   },
-  bottom: {
+  yNeg: {
     azimuthAngle: Math.PI,
     polarAngle: Math.PI,
   },
+  zPos: {
+    azimuthAngle: 0,
+    polarAngle: Math.PI / 2,
+  },
+  zNeg: {
+    azimuthAngle: Math.PI,
+    polarAngle: Math.PI / 2,
+  },
 };
+
+const axisDirections = [
+  'xPos', 'xNeg',
+  'yPos', 'yNeg',
+  'zPos', 'zNeg',
+];
 
 /**
  * A 3D orientation indicator and controller.
@@ -107,8 +113,8 @@ const orientation = {
  * the ViewCube's faces can be clicked to orient the scene to the corresponding view.
  */
 export default class ViewCube {
-  constructor(camera, rotateCameraTo) {
-    this.domElement = createViewCube(rotateCameraTo);
+  constructor(camera, rotateCameraTo, faces) {
+    this.domElement = createViewCube(rotateCameraTo, faces);
     this.update = makeUpdateViewCube(this.domElement, camera);
   }
 }
@@ -127,9 +133,13 @@ export default class ViewCube {
  *
  * @param {rotateCameraTo} rotateCameraTo Function that receives azimuthAngle and polarAngle
  *                                        object.
+ * @param {Array.<string>} 6-element array of face labels in order:
+ *                         positive x-axis, negative x-axis,
+ *                         positive y-axis, negative y-axis,
+ *                         positive z-axis, negative z-axis
  * @returns {HTMLElement} View cube element.
  */
-function createViewCube(rotateCameraTo) {
+function createViewCube(rotateCameraTo, faces) {
   // inject styles into head of page
   const cssModuleInjecter = new CssModuleInjector(CSS_NAMESPACE);
   const classes = cssModuleInjecter.inject(styles);
@@ -144,13 +154,13 @@ function createViewCube(rotateCameraTo) {
   viewCube.appendChild(cube);
 
   // create elements for each face of the cube
-  const faces = ['front', 'right', 'back', 'left', 'top', 'bottom'];
-  faces.forEach((face) => {
+  faces.forEach((face, index) => {
     const faceElement = window.document.createElement('div');
     faceElement.classList.add(classes.cubeFace);
-    faceElement.classList.add(classes[face]);
+    const axisDirection = axisDirections[index];
+    faceElement.classList.add(classes[axisDirection]);
     faceElement.innerText = face;
-    faceElement.onclick = () => rotateCameraTo(orientation[face]);
+    faceElement.onclick = () => rotateCameraTo(orientation[axisDirection]);
     cube.appendChild(faceElement);
   });
 
