@@ -126,7 +126,6 @@ class OpenAfpmCadVisualization {
           cameraControls: this._cameraControls,
         };
         this._visualizer.setup(parts, setupContext);
-
         const updateCameraControls = false;
         const handleControllerChange = debounce(() => this._render(updateCameraControls), 5);
         const gui = initializeGui(this._cameraControls, this._controller, handleControllerChange);
@@ -270,6 +269,8 @@ function initializeGui(cameraControls, controller, onControllerChange) {
 
   const obj = {
     'Reset View': () => {
+      const enableTransition = false;
+      cameraControls.reset(enableTransition);
       cameraControls.setPosition(
         initialCameraPosition.x,
         initialCameraPosition.y,
