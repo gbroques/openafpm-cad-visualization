@@ -40,6 +40,8 @@ function createLoadingScreen(
       container.style.opacity = 0;
       return new Promise((resolve) => {
         setTimeout(() => {
+          // Avoid "DOMException: Failed to execute 'removeChild' on 'Node'"
+          // as a potential race condition when switching visualizations.
           if (rootDomElement.contains(container)) {
             rootDomElement.removeChild(container);
           }

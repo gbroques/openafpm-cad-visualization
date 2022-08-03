@@ -20,7 +20,15 @@ export default function setupVisibilityFolder(
     visibilityGui.add(visibilityController, visibilityLabel).onChange(changeHandler);
   });
   const cleanUp = () => {
-    gui.removeFolder(visibilityGui);
+    const li = visibilityGui.domElement.parentElement;
+    const ul = gui.domElement.querySelector('ul');
+    // Ensure internal GUI list contains item before removing
+    // to avoid "Failed to execute 'removeChild' on 'Node'" error.
+    // This error only occurs if you quickly switch visualizations
+    // before the first GUI mounts.
+    if (ul.contains(li)) {
+      gui.removeFolder(visibilityGui);
+    }
     gui.destroy();
   };
   return cleanUp;
