@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 import CameraControls from 'camera-controls';
+import { CancelablePromise } from 'cancelable-promise';
 
 import makeGroupWiresTogether from './makeGroupWiresTogether';
 import debounce from './debounce';
@@ -105,7 +106,7 @@ class OpenAfpmCadVisualization {
       ? this._visualizer.getGroupConfigurations(transformsByName)
       : [];
     const groupParts = makeGroupParts(groupConfigurations);
-    loadObj(objUrl)
+    this._previousPromise = loadObj(objUrl)
       .then(groupWiresTogether)
       .then(groupParts)
       .then(hideLoadingScreen)
@@ -211,6 +212,8 @@ class OpenAfpmCadVisualization {
    * @see https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects
    */
   _cleanUpVisualization() {
+    if (this._previousPromise) this._previousPromise.cancel();
+
     if (this._cleanUpGui) this._cleanUpGui();
 
     if (this._scene) {
@@ -297,7 +300,7 @@ function createRenderer(width, height) {
 }
 
 function loadObj(url) {
-  return new Promise((resolve, reject) => {
+  return new CancelablePromise((resolve, reject) => {
     const objLoader = new OBJLoader();
     objLoader.load(url, resolve, handleProgress, reject);
   });

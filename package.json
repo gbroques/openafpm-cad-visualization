@@ -15,6 +15,7 @@
   "license": "LGPL-2.1-or-later",
   "dependencies": {
     "camera-controls": "^1.33.1",
+    "cancelable-promise": "^4.3.0",
     "three": "^0.133.1"
   },
   "devDependencies": {

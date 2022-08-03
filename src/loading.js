@@ -40,7 +40,9 @@ function createLoadingScreen(
       container.style.opacity = 0;
       return new Promise((resolve) => {
         setTimeout(() => {
-          rootDomElement.removeChild(container);
+          if (rootDomElement.contains(container)) {
+            rootDomElement.removeChild(container);
+          }
           resolve(...args);
         }, opacityDuration);
       });
