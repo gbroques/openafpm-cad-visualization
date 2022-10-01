@@ -21,17 +21,36 @@ const MAX_EXPLODE = 100;
  * Implements the Visualizer interface. See visualizer.js.
  */
 class ToolVisualizer {
+  /**
+   * Create an orthographic camera for viewing tools.
+   *
+   * This method creates a camera instance,
+   * but the parameter values don't matter much
+   * since they are set again later in setup.
+   *
+   * For an explanation of orhographic camera parameter
+   * derivation from aspect-ratio and viewSize:
+   * [Three.js Orthographic Camera - Interactive 3D Graphics]{@link https://www.youtube.com/watch?v=k3adBAnDpos}
+   */
   createCamera(width, height) {
-    const fieldOfView = 60;
     const aspectRatio = width / height;
+    const viewSize = 1000; // vertical space in view.
+    const left = -(aspectRatio * viewSize) / 2;
+    const right = (aspectRatio * viewSize) / 2;
+    const top = viewSize / 2;
+    const bottom = -viewSize / 2;
     const near = 0.1;
     const far = 8000;
-    const camera = new THREE.PerspectiveCamera(
-      fieldOfView,
-      aspectRatio,
+    const camera = new THREE.OrthographicCamera(
+      left,
+      right,
+      top,
+      bottom,
       near,
       far,
     );
+    camera.viewSize = viewSize;
+
     camera.up = new THREE.Vector3(0, 1, 0); // default in Three.js
     return camera;
   }
@@ -59,7 +78,9 @@ class ToolVisualizer {
   }
 
   setup(parts, setupContext) {
-    const { camera, cameraControls } = setupContext;
+    const {
+      camera, cameraControls, width, height,
+    } = setupContext;
     this._parts = sortPartsByZPosition(parts);
 
     this._partsByZMax = groupBy(this._parts, getMaxZ);
@@ -75,6 +96,13 @@ class ToolVisualizer {
     const maxIndex = Object.entries(this._partsByZMax).length - 1;
     const maxZ = maxIndex * MAX_EXPLODE * this._explosionFactor;
     camera.far = maxZ * 3.5;
+    const aspectRatio = width / height;
+    const viewSize = maxZ; // vertical space in view.
+    camera.viewSize = viewSize;
+    camera.left = -(aspectRatio * viewSize) / 2;
+    camera.right = (aspectRatio * viewSize) / 2;
+    camera.top = viewSize / 2;
+    camera.bottom = -viewSize / 2;
     camera.updateProjectionMatrix();
     const x = maxZ * 1;
     const y = this._size.y / 5;

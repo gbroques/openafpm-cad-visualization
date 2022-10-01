@@ -125,6 +125,8 @@ class OpenAfpmCadVisualization {
           transformsByName,
           camera: this._camera,
           cameraControls: this._cameraControls,
+          width: this._width,
+          height: this._height,
         };
         this._visualizer.setup(parts, setupContext);
         const updateCameraControls = false;
@@ -160,7 +162,14 @@ class OpenAfpmCadVisualization {
   resize(width, height) {
     this._width = width;
     this._height = height;
-    this._camera.aspect = width / height;
+    const aspectRatio = width / height;
+    if (this._camera.isOrthographicCamera) {
+      const { viewSize } = this._camera;
+      this._camera.left = -(aspectRatio * viewSize) / 2;
+      this._camera.right = (aspectRatio * viewSize) / 2;
+    } else {
+      this._camera.aspect = aspectRatio;
+    }
     this._camera.updateProjectionMatrix();
     this._cameraControls.setViewport(0, 0, width, height);
     this._renderer.setSize(width, height);
