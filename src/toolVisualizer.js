@@ -75,7 +75,7 @@ class ToolVisualizer {
   }
 
   createLights() {
-    return [createAmbientLight()];
+    return [createAmbientLight(), createDirectionalLight()];
   }
 
   setup(parts, setupContext) {
@@ -143,8 +143,13 @@ class ToolVisualizer {
       .trim();
   }
 
-  getMaterial() {
-    return Material.WOOD;
+  getMaterial(partName) {
+    switch (partName) {
+      case 'Stator_Coil':
+        return Material.COPPER;
+      default:
+        return Material.WOOD;
+    }
   }
 
   getPartNamesByVisibilityLabel(parts) {
@@ -162,6 +167,17 @@ function createAmbientLight() {
   const color = 0xFFFFFF;
   const intensity = 0.55;
   return new THREE.AmbientLight(color, intensity);
+}
+
+// for providing shininess of copper coil
+function createDirectionalLight() {
+  const color = 0xFFFFFF;
+  const directionalLightIntensity = 0.1;
+  const light = new THREE.DirectionalLight(color, directionalLightIntensity);
+  light.position.set(0, 100, 250);
+  light.target.position.set(0, 50, 100);
+  light.name = 'DirectionalLight';
+  return light;
 }
 
 function sortPartsByZPosition(parts) {
@@ -182,7 +198,9 @@ function sortPartsByZPosition(parts) {
 
 function getMaxZ(part) {
   const mesh = findMesh(part);
-  return mesh.geometry.boundingBox.max.z;
+  // stator coil and spacer z are effectively the same,
+  // but different by ~0.2. Thus, we round to group them.
+  return Math.round(mesh.geometry.boundingBox.max.z);
 }
 
 function groupBy(array, getKey) {
