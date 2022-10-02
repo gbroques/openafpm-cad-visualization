@@ -7,6 +7,7 @@ import { findMesh } from './findMeshes';
 const PART_NAME_PREFIXES = [
   'Stator_Mold',
   'Rotor_Mold',
+  'Rotor', // for magnet jig
   'Stator_CoilWinder',
 ];
 
@@ -94,7 +95,9 @@ class ToolVisualizer {
     unionBox.getSize(this._size);
     this._explosionFactor = ((this._size.x + this._size.y) / (200));
     const maxIndex = Object.entries(this._partsByZMax).length - 1;
-    const maxZ = maxIndex * MAX_EXPLODE * this._explosionFactor;
+    // ensure maxZ is not 0 for when there is only one object.
+    const maxFactor = maxIndex === 0 ? 1.5 : maxIndex;
+    const maxZ = maxFactor * MAX_EXPLODE * this._explosionFactor;
     camera.far = maxZ * 3.5;
     const aspectRatio = width / height;
     const viewSize = maxZ; // vertical space in view.
