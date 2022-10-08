@@ -4,11 +4,11 @@ import CameraControls from 'camera-controls';
 import Material from './material';
 import getMaterial from './getMaterial';
 import { findMesh } from './findMeshes';
+import Part from './windTurbinePart';
 
 const PART_NAME_PREFIXES = [
   'Stator_Mold',
   'Rotor_Mold',
-  'Rotor', // for magnet jig
   'Stator_CoilWinder',
 ];
 
@@ -137,11 +137,24 @@ class ToolVisualizer {
   }
 
   getTooltipLabel(partName) {
-    return PART_NAME_PREFIXES
-      .reduce((name, prefix) => name.replace(prefix, ''), partName)
-      .replaceAll('_', '')
-      .replace(/([A-Z])/g, ' $1')
-      .trim();
+    const tooltipLabel = {
+      [Part.Stator_Coils]: 'Coils',
+      [Part.Stator_Coil]: 'Coil',
+      [Part.Stator_ResinCast]: 'Stator Resin Cast',
+      [Part.Rotor_ResinCast_Front]: 'Rotor Resin Cast',
+      [Part.Rotor_Disk_Back]: 'Rotor Disk',
+      Rotor_Magnets: 'Magnets',
+      Rotor_MagnetJig: 'Magnet Jig',
+    }[partName];
+    if (tooltipLabel) {
+      return tooltipLabel;
+    } else {
+      return PART_NAME_PREFIXES
+        .reduce((name, prefix) => name.replace(prefix, ''), partName)
+        .replaceAll('_', '')
+        .replace(/([A-Z])/g, ' $1')
+        .trim();
+    }
   }
 
   getMaterial(partName) {
