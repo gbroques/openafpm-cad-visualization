@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import CameraControls from 'camera-controls';
 
 import Material from './material';
+import getMaterial from './getMaterial';
 import { findMesh } from './findMeshes';
 
 const PART_NAME_PREFIXES = [
@@ -144,12 +145,7 @@ class ToolVisualizer {
   }
 
   getMaterial(partName) {
-    switch (partName) {
-      case 'Stator_Coil':
-        return Material.COPPER;
-      default:
-        return Material.WOOD;
-    }
+    return getMaterial(partName, Material.WOOD);
   }
 
   getPartNamesByVisibilityLabel(parts) {

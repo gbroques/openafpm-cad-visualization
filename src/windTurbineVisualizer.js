@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import CameraControls from 'camera-controls';
 
 import Material from './material';
+import getMaterial from './getMaterial';
 import transformsToMatrix4 from './transformsToMatrix4';
 import findMeshes from './findMeshes';
 import Part from './windTurbinePart';
@@ -225,21 +226,7 @@ class WindTurbineVisualizer {
   }
 
   getMaterial(partName) {
-    switch (partName) {
-      case Part.Stator_ResinCast:
-      case Part.Rotor_ResinCast_Front:
-      case Part.Rotor_ResinCast_Back:
-        return Material.RESIN;
-      case Part.Stator_Coils:
-        return Material.COPPER;
-      case Part.Rotor_Magnets_Front:
-      case Part.Rotor_Magnets_Back:
-        return Material.MAGNET;
-      case Part.Tail_Vane:
-        return Material.WOOD;
-      default:
-        return Material.STEEL;
-    }
+    return getMaterial(partName, Material.STEEL);
   }
 
   setupGui(gui, controller, onControllerChange) {
