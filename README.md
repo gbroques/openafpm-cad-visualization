@@ -35,29 +35,32 @@ A list of object names that **MUST** be present in the `.obj` file for the Wind 
 In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file), object names start with `o` and are delimited with a space on their own line (e.g. `o Coils`). 
 
 1. Stator_Coils
-2. Stator_ResinCast
-3. Rotor_Disk_Front
-4. Rotor_ResinCast_Front
-5. Rotor_Magnets_Front
-6. Rotor_Disk_Back
-7. Rotor_ResinCast_Back
-8. Rotor_Magnets_Back
-9. Hub_Flange
-10. Hub_Flange_Cover_Front
-11. Hub_Flange_Cover_Back
-12. Hub_StubAxleShaft
-13. Studs_Hub
-14. Frame
-15. YawBearing
-16. Tail_Hinge_Inner
-17. Tail_Hinge_Outer
-18. Tail_Boom_Pipe
-19. Tail_Boom_Support
-20. Tail_Stop_HighEnd
-21. Vane_Bracket_Top
-22. Vane_Bracket_Bottom
-23. Tail_Vane
+2. Stator_Coil (used by Coil Winder)
+3. Stator_ResinCast
+4. Rotor_Disk_Front
+5. Rotor_ResinCast_Front
+6. Rotor_Magnets_Front
+7. Rotor_Disk_Back
+8. Rotor_ResinCast_Back
+9. Rotor_Magnets_Back
+10. Hub_Flange
+11. Hub_Flange_Cover_Front
+12. Hub_Flange_Cover_Back
+13. Hub_StubAxleShaft
+14. Studs_Hub
+15. Frame
+16. YawBearing
+17. Tail_Hinge_Inner
+18. Tail_Hinge_Outer
+19. Tail_Boom_Pipe
+20. Tail_Boom_Support
+21. Tail_Stop_HighEnd
+22. Vane_Bracket_Top
+23. Vane_Bracket_Bottom
+24. Tail_Vane
 25. Studs_Frame
+26. Bolts (used by Magnet Jig)
+27. Nuts (used by Magnet Jig)
 
 ## API
 

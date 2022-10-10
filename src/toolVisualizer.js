@@ -5,6 +5,7 @@ import Material from './material';
 import getMaterial from './getMaterial';
 import { findMesh } from './findMeshes';
 import Part from './windTurbinePart';
+import partition from './partition';
 
 const PART_NAME_PREFIXES = [
   'Stator_Mold',
@@ -85,7 +86,11 @@ class ToolVisualizer {
     } = setupContext;
     this._parts = sortPartsByZPosition(parts);
 
-    this._partsByZMax = groupBy(this._parts, getMaxZ);
+    const [partsWithNegativeZMin, partsWithZeroOrPositiveZMin] = partition(
+      this._parts, (part) => getMinZ(part) < 0,
+    );
+    this._partsByZMax = groupBy(partsWithZeroOrPositiveZMin, getMaxZ);
+    this._partsWithNegativeZMin = partsWithNegativeZMin;
     const boundingBoxes = this._parts
       .map(findMesh)
       .map((mesh) => mesh.geometry.boundingBox);
@@ -133,6 +138,12 @@ class ToolVisualizer {
         );
         part.position.copy(explosionVector);
       });
+    });
+    this._partsWithNegativeZMin.forEach((part, index) => {
+      const explosionVector = new THREE.Vector3(
+        0, 0, (index + 1) * explode * this._explosionFactor * -1,
+      );
+      part.position.copy(explosionVector);
     });
   }
 
@@ -210,6 +221,11 @@ function getMaxZ(part) {
   // stator coil and spacer z are effectively the same,
   // but different by ~0.2. Thus, we round to group them.
   return Math.round(mesh.geometry.boundingBox.max.z);
+}
+
+function getMinZ(part) {
+  const mesh = findMesh(part);
+  return Math.round(mesh.geometry.boundingBox.min.z);
 }
 
 function groupBy(array, getKey) {

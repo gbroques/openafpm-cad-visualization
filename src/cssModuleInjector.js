@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import partition from './partition';
 
 /**
  * Simple implementation of CSS modules.
@@ -88,11 +89,4 @@ function generateIndentation(level) {
       .map(() => ' ')
       .join('')
   );
-}
-
-function partition(array, predicate) {
-  return [
-    array.filter(predicate),
-    array.filter((e) => !predicate(e)),
-  ];
 }
