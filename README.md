@@ -59,8 +59,9 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 23. Vane_Bracket_Bottom
 24. Tail_Vane
 25. Studs_Frame
-26. Bolts (used by Magnet Jig)
-27. Nuts (used by Magnet Jig)
+26. Bolts (used by Tools)
+27. Nuts (used by Tools)
+27. Screws (used by Tools)
 
 ## API
 

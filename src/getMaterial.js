@@ -13,7 +13,10 @@ export default function getMaterial(partName, defaultMaterial = Material.STEEL) 
   } else if (partName === WindTurbinePart.Tail_Vane) {
     return Material.WOOD;
   } else if (
-    partName === WindTurbinePart.Rotor_Disk_Back || partName === 'Bolts' || partName === 'Nuts'
+    partName === WindTurbinePart.Rotor_Disk_Back
+    || partName === 'Bolts'
+    || partName === 'Nuts'
+    || partName === 'Screws'
   ) {
     return Material.STEEL;
   } else {
