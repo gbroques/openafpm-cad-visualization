@@ -14,6 +14,7 @@ export default function getMaterial(partName, defaultMaterial = Material.STEEL) 
     return Material.WOOD;
   } else if (
     partName === WindTurbinePart.Rotor_Disk_Back
+    || partName === 'LocatingBolts'
     || partName === 'Bolts'
     || partName === 'Nuts'
     || partName === 'Screws'

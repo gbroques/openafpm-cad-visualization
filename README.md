@@ -61,7 +61,8 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 25. Studs_Frame
 26. Bolts (used by Tools)
 27. Nuts (used by Tools)
-27. Screws (used by Tools)
+28. Screws (used by Tools)
+29. LocatingBolts (used by Stator Mold)
 
 ## API
 
