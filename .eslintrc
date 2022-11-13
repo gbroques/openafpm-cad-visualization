@@ -16,6 +16,7 @@
         "one-var-declaration-per-line": "off",
         "class-methods-use-this": "off",
         "no-param-reassign": "off",
-        "no-else-return": "off"
+        "no-else-return": "off",
+        "no-restricted-syntax": "off"
     }
 }

@@ -109,6 +109,7 @@ class WindTurbineVisualizer {
     parts.forEach((part) => {
       this._partByName[part.name] = part;
     });
+    return parts;
   }
 
   getGroupConfigurations(transformsByName) {

@@ -3,9 +3,9 @@ import CameraControls from 'camera-controls';
 
 import Material from './material';
 import getMaterial from './getMaterial';
-import { findMesh } from './findMeshes';
 import Part from './windTurbinePart';
 import partition from './partition';
+import sortByPrimaryAndSecondaryFloatCriteria from './sortByPrimaryAndSecondaryFloatCriteria';
 
 const PART_NAME_PREFIXES = [
   'Stator_Mold',
@@ -86,58 +86,63 @@ class ToolVisualizer {
     } = setupContext;
     this._parts = sortPartsByZPosition(parts);
 
-    const [partsWithNegativeZMin, partsWithZeroOrPositiveZMin] = partition(
+    const [partsWithNegativeZMin, partsWithNonNegativeZMin] = partition(
       this._parts, (part) => getMinZ(part) < 0,
     );
-    this._partsByZMax = groupBy(partsWithZeroOrPositiveZMin, getMaxZ);
+    this._partsWithNonNegativeZMin = partsWithNonNegativeZMin;
     this._partsWithNegativeZMin = partsWithNegativeZMin;
-    const boundingBoxes = this._parts
-      .map(findMesh)
-      .map((mesh) => mesh.geometry.boundingBox);
+    const boundingBoxes = this._parts.map(getBoundingBoxFromPart);
     const unionBox = boundingBoxes.reduce((acc, boundingBox) => (
       acc.union(boundingBox)
     ), new THREE.Box3());
     this._size = new THREE.Vector3();
     unionBox.getSize(this._size);
-    this._explosionFactor = ((this._size.x + this._size.y) / (200));
-    const maxIndex = Object.entries(this._partsByZMax).length - 1;
-    // ensure maxZ is not 0 for when there is only one object.
-    const maxFactor = maxIndex === 0 ? 1.5 : maxIndex;
-    const maxZ = maxFactor * MAX_EXPLODE * this._explosionFactor;
-    camera.far = maxZ * 3.5;
+    const avgDimension = Math.round(((this._size.x + this._size.y + this._size.z) / 3));
+    this._explosionFactor = avgDimension / MAX_EXPLODE;
+    const maximumSpaceBetweenParts = this._explosionFactor * MAX_EXPLODE;
+    const minZ = (
+      partsWithNegativeZMin.length * maximumSpaceBetweenParts * -1
+    );
+    const maxZ = (
+      partsWithNonNegativeZMin.length * maximumSpaceBetweenParts
+    );
+
+    const zLength = Math.abs(maxZ - minZ);
+    camera.far = zLength * 10;
     const aspectRatio = width / height;
-    const viewSize = maxZ; // vertical space in view.
+    const avgXyDimension = Math.round(((this._size.x + this._size.y) / 2));
+    const viewSize = avgXyDimension * 4; // vertical space in view.
     camera.viewSize = viewSize;
     camera.left = -(aspectRatio * viewSize) / 2;
     camera.right = (aspectRatio * viewSize) / 2;
     camera.top = viewSize / 2;
     camera.bottom = -viewSize / 2;
     camera.updateProjectionMatrix();
-    const x = maxZ * 1;
+    const x = zLength * 6;
     const y = this._size.y / 5;
-    const z = maxZ * 1.5;
-    const avgDimension = (this._size.x + this._size.y) / 2;
+    const z = maxZ * 6;
     cameraControls.setPosition(x, y, z);
-    cameraControls.maxDistance = z * 1.25;
-    cameraControls.minDistance = avgDimension;
+    // look in middle of exploded parts
+    const targetZ = ((maxZ - this._explosionFactor) + minZ) / 2;
+    cameraControls.setTarget(0, 0, targetZ);
+    cameraControls.maxDistance = zLength * 1.25;
+    cameraControls.minDistance = avgXyDimension;
+    const enableTransition = false;
+    const azimuthAngle = Math.PI / 4;
+    const { polarAngle } = cameraControls;
+    cameraControls.rotateTo(azimuthAngle, polarAngle, enableTransition);
+    // Return parts for ordering in Visibility menu.
+    const reversedParts = [...this._parts].reverse();
+    return reversedParts;
   }
 
-  explode(controller, cameraControls) {
+  explode(controller) {
     const explode = controller.Explode;
-
-    const maxIndex = Object.entries(this._partsByZMax).length - 1;
-    const maxZ = maxIndex * explode * this._explosionFactor;
-    cameraControls.setTarget(0, 0, maxZ / 2);
-    cameraControls.update();
-    // Rotor Mold Surround & Island have same z max
-    // and should be exploded the same amount.
-    Object.values(this._partsByZMax).forEach((parts, index) => {
-      parts.forEach((part) => {
-        const explosionVector = new THREE.Vector3(
-          0, 0, index * explode * this._explosionFactor,
-        );
-        part.position.copy(explosionVector);
-      });
+    Object.values(this._partsWithNonNegativeZMin).forEach((part, index) => {
+      const explosionVector = new THREE.Vector3(
+        0, 0, index * explode * this._explosionFactor,
+      );
+      part.position.copy(explosionVector);
     });
     this._partsWithNegativeZMin.forEach((part, index) => {
       const explosionVector = new THREE.Vector3(
@@ -200,41 +205,77 @@ function createDirectionalLight() {
   return light;
 }
 
+/**
+ * Sort parts by z-position ascending for explosion.
+ * Most parts use z-max as their z-position, but some use z-min.
+ * "z-extrema" is the term used to describe either z-min or z-max.
+ * If two parts are equal in z-position, then they are sorted by
+ * XY plane area descending.
+ */
 function sortPartsByZPosition(parts) {
-  const partsToBeSorted = [...parts];
-  const boundingBoxByName = {};
-  parts.forEach((part) => {
-    const mesh = findMesh(part);
-    mesh.geometry.computeBoundingBox();
-    boundingBoxByName[part.name] = mesh.geometry.boundingBox;
-  });
-  return partsToBeSorted.sort((a, b) => {
-    const aBoundingBox = boundingBoxByName[a.name];
-    const bBoundingBox = boundingBoxByName[b.name];
-    // < 0, sort a before b
-    return aBoundingBox.max.z <= bBoundingBox.max.z ? -1 : 1;
-  });
-}
-
-function getMaxZ(part) {
-  const mesh = findMesh(part);
-  // stator coil and spacer z are effectively the same,
-  // but different by ~0.2. Thus, we round to group them.
-  return Math.round(mesh.geometry.boundingBox.max.z);
+  // Ensure Bolts are between Base and Bolt Head Layer for Stator Mold.
+  // Ensure Magnets are between Rotor Disk and Surround for Rotor Mold.
+  const zMinPartNames = new Set(['LocatingBolts', 'Bolts', 'Rotor_Magnets']);
+  const getZExtremaFromPart = createGetZExtremaFromPart(zMinPartNames);
+  const primarySort = {
+    getFloatValue: getZExtremaFromPart,
+    direction: 'ASC',
+  };
+  const secondarySort = {
+    getFloatValue: getXyPlaneAreaFromPart,
+    direction: 'DESC',
+  };
+  const tolerance = 1; // in mm for comparing two floats
+  return sortByPrimaryAndSecondaryFloatCriteria(
+    parts,
+    primarySort,
+    secondarySort,
+    tolerance,
+  );
 }
 
 function getMinZ(part) {
-  const mesh = findMesh(part);
-  return Math.round(mesh.geometry.boundingBox.min.z);
+  return getZExtrema(part, 'min');
 }
 
-function groupBy(array, getKey) {
-  return array.reduce((acc, element) => {
-    const key = getKey(element);
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(element);
-    return acc;
-  }, {});
+function getZExtrema(part, extrema) {
+  // const mesh = findMesh(part);
+  const boundingBox = getBoundingBoxFromPart(part);
+  // stator coil and spacer z are effectively the same,
+  // but different by ~0.2. Thus, we round to group them.
+  return Math.round(boundingBox[extrema].z);
+}
+
+function findWireGroup(part) {
+  return part.children.find((c) => c.name.endsWith('WireGroup'));
+}
+
+function getBoundingBoxFromPart(part) {
+  const boundingBox = new THREE.Box3();
+  // use wire group instead of mesh for bounding box
+  // as the latter's z-min is always 0 for some reason.
+  const wireGroup = findWireGroup(part);
+  boundingBox.setFromObject(wireGroup);
+  return boundingBox;
+}
+
+function createGetZExtremaFromPart(zMinPartNames) {
+  return (part) => {
+    const boundingBox = getBoundingBoxFromPart(part);
+    const extrema = zMinPartNames.has(part.name) ? 'min' : 'max';
+    return boundingBox[extrema].z;
+  };
+}
+
+function getXyPlaneAreaFromPart(part) {
+  const boundingBox = getBoundingBoxFromPart(part);
+  const size = new THREE.Vector3();
+  boundingBox.getSize(size);
+  return getXyPlaneArea(size);
+}
+
+function getXyPlaneArea(size) {
+  return size.x * size.y;
 }
 
 module.exports = ToolVisualizer;

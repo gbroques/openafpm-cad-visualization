@@ -1,6 +1,12 @@
 import Material from './material';
 import WindTurbinePart from './windTurbinePart';
 
+const FASTENER_SUFFIXES = [
+  'Bolts',
+  'Nuts',
+  'Screws',
+];
+
 export default function getMaterial(partName, defaultMaterial = Material.STEEL) {
   if (partName.includes('ResinCast')) {
     return Material.RESIN;
@@ -14,10 +20,7 @@ export default function getMaterial(partName, defaultMaterial = Material.STEEL) 
     return Material.WOOD;
   } else if (
     partName === WindTurbinePart.Rotor_Disk_Back
-    || partName === 'LocatingBolts'
-    || partName === 'Bolts'
-    || partName === 'Nuts'
-    || partName === 'Screws'
+    || FASTENER_SUFFIXES.some((suffix) => partName.endsWith(suffix))
   ) {
     return Material.STEEL;
   } else {

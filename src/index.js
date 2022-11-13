@@ -128,7 +128,7 @@ class OpenAfpmCadVisualization {
           width: this._width,
           height: this._height,
         };
-        this._visualizer.setup(parts, setupContext);
+        const sortedParts = this._visualizer.setup(parts, setupContext);
         const updateCameraControls = false;
         const handleControllerChange = debounce(() => this._render(updateCameraControls), 5);
         const gui = initializeGui(this._cameraControls, this._controller, handleControllerChange);
@@ -141,8 +141,8 @@ class OpenAfpmCadVisualization {
         }
         this._cleanUpGui = setupVisibilityFolder(
           gui,
-          this._visualizer.getPartNamesByVisibilityLabel(parts),
-          parts,
+          this._visualizer.getPartNamesByVisibilityLabel(sortedParts),
+          sortedParts,
           this._visibleMeshes,
           handleControllerChange,
         );
@@ -252,7 +252,7 @@ class OpenAfpmCadVisualization {
       // allow subclasses to optionally implement extra render functionality
       // such as furl in the case of the wind turbine visualization.
       if (this._visualizer.handleRender) this._visualizer.handleRender(this._controller);
-      this._visualizer.explode(this._controller, this._cameraControls);
+      this._visualizer.explode(this._controller);
     }
     this._renderer.render(this._scene, this._camera);
     this._viewCube.update();
@@ -279,6 +279,9 @@ function initializeGui(cameraControls, controller, onControllerChange) {
   const initialCameraPosition = new THREE.Vector3();
   cameraControls.getPosition(initialCameraPosition);
 
+  const initialCameraTarget = new THREE.Vector3();
+  cameraControls.getTarget(initialCameraTarget);
+
   const obj = {
     'Reset View': () => {
       const enableTransition = false;
@@ -287,6 +290,11 @@ function initializeGui(cameraControls, controller, onControllerChange) {
         initialCameraPosition.x,
         initialCameraPosition.y,
         initialCameraPosition.z,
+      );
+      cameraControls.setTarget(
+        initialCameraTarget.x,
+        initialCameraTarget.y,
+        initialCameraTarget.z,
       );
       cameraControls.update();
       onControllerChange();
