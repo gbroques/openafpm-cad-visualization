@@ -63,6 +63,7 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 27. Nuts (used by Tools)
 28. *Screws (used by Tools)
 29. LocatingBolts (used by Stator Mold)
+30. Washers (used by Rotor Mold)
 
 \* Denotes and "ends with" match is performed.
 

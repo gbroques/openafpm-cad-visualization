@@ -5,6 +5,7 @@ const FASTENER_SUFFIXES = [
   'Bolts',
   'Nuts',
   'Screws',
+  'Washers',
 ];
 
 export default function getMaterial(partName, defaultMaterial = Material.STEEL) {
