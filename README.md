@@ -86,15 +86,15 @@ Behind the scenes constructs a [WebGLRenderer](https://threejs.org/docs/?q=rende
 |`options.width`|`number`|`true`|Width of visualization.|
 |`options.height`|`number`|`true`|Height of visualization.|
 
-#### visualize(objUrl, type, transformsByName)
+#### visualize(objUrl, assembly, transformsByName)
 
 ##### Arguments
 
 |Name|Type|Required|Description|
 |----|----|--------|-----------|
 |`objUrl`|`string`|`true`|URL to load [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file.|
-|`type`|[`string`]|`true`|Type of visualization. Must be one of `"WindTurbine"` or `"Tool"`.|
-|`transformsByName`|`Object.<string, Array.<Transform>`|`true` when `type` === `"WindTurbine"`, `false` otherwise.|When `type` === `"WindTurbine"`, a `"furl"` property must be present containing a three element array of `Transform` objects needed to furl the tail. See below table for details.|
+|`assembly`|[`string`]|`true`|Assembly of visualization. Must be one of `"WindTurbine"`, `"StatorMold"`, `"RotorMold"`, `"MagnetJig"`, or `"CoilWinder"`.|
+|`transformsByName`|`Object.<string, Array.<Transform>`|`true` when `type` === `"WindTurbine"`, `false` otherwise.|When `assembly` === `"WindTurbine"`, a `"furl"` property must be present containing a three element array of `Transform` objects needed to furl the tail. See below table for details.|
 
 ###### Transform
 

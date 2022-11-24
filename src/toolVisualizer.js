@@ -82,9 +82,9 @@ class ToolVisualizer {
 
   setup(parts, setupContext) {
     const {
-      camera, cameraControls, width, height,
+      camera, cameraControls, width, height, sortOverrideArray,
     } = setupContext;
-    this._parts = sortPartsByZPosition(parts);
+    this._parts = sortPartsByZPosition(parts, sortOverrideArray);
 
     const [partsWithNegativeZMin, partsWithNonNegativeZMin] = partition(
       this._parts, (part) => getMinZ(part) < 0,
@@ -211,11 +211,13 @@ function createDirectionalLight() {
  * "z-extrema" is the term used to describe either z-min or z-max.
  * If two parts are equal in z-position, then they are sorted by
  * XY plane area descending.
+ *
+ * Additionally, a sort override array of part names may be passed
+ * to override the order of parts attained from the above rules.
  */
-function sortPartsByZPosition(parts) {
+function sortPartsByZPosition(parts, sortOverrideArray) {
   // Ensure Bolts are between Base and Bolt Head Layer for Stator Mold.
-  // Ensure Magnets are between Rotor Disk and Surround for Rotor Mold.
-  const zMinPartNames = new Set(['LocatingBolts', 'Bolts', 'Rotor_Magnets']);
+  const zMinPartNames = new Set(['LocatingBolts', 'Bolts']);
   const getZExtremaFromPart = createGetZExtremaFromPart(zMinPartNames);
   const primarySort = {
     getFloatValue: getZExtremaFromPart,
@@ -226,12 +228,27 @@ function sortPartsByZPosition(parts) {
     direction: 'DESC',
   };
   const tolerance = 1; // in mm for comparing two floats
-  return sortByPrimaryAndSecondaryFloatCriteria(
+  const sortedParts = sortByPrimaryAndSecondaryFloatCriteria(
     parts,
     primarySort,
     secondarySort,
     tolerance,
   );
+  return sortBySortOverrideArray(sortedParts, sortOverrideArray);
+}
+
+function sortBySortOverrideArray(array, sortOverrideArray) {
+  return [...array].sort((a, b) => {
+    const findIndexByName = (part) => (
+      sortOverrideArray.findIndex((partName) => partName === part.name)
+    );
+    const aIndex = findIndexByName(a);
+    const bIndex = findIndexByName(b);
+    if (aIndex === -1 || bIndex === -1) {
+      return 0;
+    }
+    return Math.sign(aIndex - bIndex);
+  });
 }
 
 function getMinZ(part) {

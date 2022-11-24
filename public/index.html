@@ -64,8 +64,8 @@
         };
         window.addEventListener('resize', handleResize, false);
 
-        function loadAssembly(objUrl, type, transformsByName = {}) {
-            openAfpmCadVisualization.visualize(objUrl, type, transformsByName);
+        function loadAssembly(objUrl, assembly, transformsByName = {}) {
+            openAfpmCadVisualization.visualize(objUrl, assembly, transformsByName);
             const handleMouseMove = (event) => {
                 openAfpmCadVisualization.handleMouseMove(event)
             };
@@ -93,6 +93,12 @@
         function getObjUrl(state) {
             return state.variant + '/' + state.assembly + '.obj';
         }
+        function kebabCaseToPascalCase(kebabText) {
+            return kebabText.replace(/(^\w|-\w)/g, clearHyphenAndUpperLetter);
+        }
+        function clearHyphenAndUpperLetter(kebabText) {
+            return kebabText.replace(/-/, '').toUpperCase();
+        }
         function handleSelect(event) {
             const {name, value} = event.target;
             setState({[name]: value});
@@ -100,11 +106,11 @@
             container.innerHTML = '';
             const furlTransforms = furlTransformsByVariant[state.variant];
             const objUrl = getObjUrl(state);
-            const isWindTurbine = state.assembly === 'wind-turbine';
-            const type = isWindTurbine ? 'WindTurbine' : 'Tool';
+            const assembly = kebabCaseToPascalCase(state.assembly);
+            const isWindTurbine = assembly === 'WindTurbine';
             const transformsByName = isWindTurbine ? { furl: furlTransforms } : {};
             if (cleanUp) cleanUp();
-            cleanUp = loadAssembly(objUrl, type, transformsByName);
+            cleanUp = loadAssembly(objUrl, assembly, transformsByName);
         }
         const variantSelect = document.querySelector('select[name="variant"]');
         variantSelect.addEventListener('change', handleSelect);

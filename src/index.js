@@ -36,9 +36,9 @@ class OpenAfpmCadVisualization {
     this._renderer = createRenderer(width, height);
   }
 
-  visualize(objUrl, type, transformsByName = {}) {
+  visualize(objUrl, assembly, transformsByName = {}) {
     this._cleanUpVisualization();
-    this._visualizer = type === 'WindTurbine'
+    this._visualizer = assembly === 'WindTurbine'
       ? new WindTurbineVisualizer()
       : new ToolVisualizer();
     // must be PerspectiveCamera because aspect is set in resize
@@ -127,6 +127,7 @@ class OpenAfpmCadVisualization {
           cameraControls: this._cameraControls,
           width: this._width,
           height: this._height,
+          sortOverrideArray: getSortOverrideArray(assembly),
         };
         const sortedParts = this._visualizer.setup(parts, setupContext);
         const updateCameraControls = false;
@@ -338,6 +339,21 @@ function createAppContainer(opacityDuration) {
     + `transition: opacity ${opacityDuration}ms ease-in-out;`
     + 'position: relative';
   return container;
+}
+
+function getSortOverrideArray(assembly) {
+  const sortOverrideArrayByAssembly = {
+    RotorMold: [
+      'Rotor_Mold_Surround',
+      'Screws',
+      'Rotor_Disk_Back',
+      'Rotor_Magnets',
+      'Rotor_ResinCast',
+    ],
+  };
+  return sortOverrideArrayByAssembly[assembly]
+    ? sortOverrideArrayByAssembly[assembly]
+    : [];
 }
 
 module.exports = OpenAfpmCadVisualization;
