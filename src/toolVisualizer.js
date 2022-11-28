@@ -219,7 +219,7 @@ function createDirectionalLight() {
  */
 function sortPartsByZPosition(parts, sortOverrideArray) {
   // Ensure Bolts are between Base and Bolt Head Layer for Stator Mold.
-  const zMinPartNames = new Set(['LocatingBolts', 'Bolts']);
+  const zMinPartNames = new Set(['LocatingBolts', 'Bolts', 'Rotor_Magnets']);
   const getZExtremaFromPart = createGetZExtremaFromPart(zMinPartNames);
   const primarySort = {
     getFloatValue: getZExtremaFromPart,
