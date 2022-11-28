@@ -64,6 +64,9 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 28. *Screws (used by Tools)
 29. LocatingBolts (used by Stator Mold)
 30. Washers (used by Rotor Mold)
+31. Rotor_MagnetJig (used by Magnet Jig)
+32. Rotor_MagnetJig_Disk (used by Magnet Jig)
+33. Rotor_Magnets (used by Magnet Jig)
 
 \* Denotes and "ends with" match is performed.
 

@@ -159,8 +159,10 @@ class ToolVisualizer {
       [Part.Stator_ResinCast]: 'Stator Resin Cast',
       [Part.Rotor_ResinCast_Front]: 'Rotor Resin Cast',
       [Part.Rotor_Disk_Back]: 'Rotor Disk',
+      // Used by Magnet Jig
       Rotor_Magnets: 'Magnets',
       Rotor_MagnetJig: 'Magnet Jig',
+      Rotor_MagnetJig_Disk: 'Inner Disk',
     }[partName];
     if (tooltipLabel) {
       return tooltipLabel;
