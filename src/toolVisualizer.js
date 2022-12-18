@@ -4,7 +4,8 @@ import CameraControls from 'camera-controls';
 import Material from './material';
 import getMaterial from './getMaterial';
 import Part from './windTurbinePart';
-import partition from './partition';
+import { forEachWithPrevious, groupBy, partition } from './array';
+import { mapEntries, mapValues, mergeObjectsWithArrayValues } from './object';
 import sortByPrimaryAndSecondaryFloatCriteria from './sortByPrimaryAndSecondaryFloatCriteria';
 
 const PART_NAME_PREFIXES = [
@@ -92,9 +93,7 @@ class ToolVisualizer {
     this._partsWithNonNegativeZMin = partsWithNonNegativeZMin;
     this._partsWithNegativeZMin = partsWithNegativeZMin;
     const boundingBoxes = this._parts.map(getBoundingBoxFromPart);
-    const unionBox = boundingBoxes.reduce((acc, boundingBox) => (
-      acc.union(boundingBox)
-    ), new THREE.Box3());
+    const unionBox = unionBoundingBoxes(boundingBoxes);
     this._size = new THREE.Vector3();
     unionBox.getSize(this._size);
     const avgDimension = Math.round(((this._size.x + this._size.y + this._size.z) / 3));
@@ -133,29 +132,59 @@ class ToolVisualizer {
     cameraControls.rotateTo(azimuthAngle, polarAngle, enableTransition);
     // Return parts for ordering in Visibility menu.
     const reversedParts = [...this._parts].reverse();
-    return reversedParts;
+    // Ungroup "array parts" by position to later be grouped by name for visibility toggling.
+    return ungroupParts(reversedParts);
+  }
+
+  getGroupConfigurations({ parts }) {
+    // Group all "array parts" by position for explosion.
+    // This is needed for the Coil Winder visualization.
+    const partsByPosition = groupBy(parts, (part) => getNumberAtEnd(part.name));
+    return Object.entries(partsByPosition).map(([position, groupedParts]) => ({
+      createGroup: () => {
+        const group = new THREE.Group();
+        group.name = 'Group' + position;
+        return group;
+      },
+      partNames: new Set(groupedParts.map((part) => part.name)),
+    }));
   }
 
   explode(controller) {
     const explode = controller.Explode;
-    Object.values(this._partsWithNonNegativeZMin).forEach((part, index) => {
+    const explosionBaseFactor = explode * this._explosionFactor;
+    const getExplosionAmountForChild = makeGetExplosionAmountForChild(
+      explosionBaseFactor,
+    );
+    forEachWithPrevious(this._partsWithNonNegativeZMin, (part, previous, index) => {
+      if (part.userData.isCompositePart) {
+        part.children.forEach((child) => {
+          const explosionAmount = getExplosionAmountForChild(child, index);
+          const explosionVector = new THREE.Vector3(0, 0, explosionAmount);
+          child.position.copy(explosionVector);
+        });
+      }
+      // offset necessary for positioning of Outer_Nut_Front in Coil Winder explosion.
+      const offset = getOffset(
+        part, previous, getExplosionAmountForChild,
+      );
       const explosionVector = new THREE.Vector3(
-        0, 0, index * explode * this._explosionFactor,
+        0, 0, index * explosionBaseFactor + offset,
       );
       part.position.copy(explosionVector);
     });
     this._partsWithNegativeZMin.forEach((part, index) => {
       const explosionVector = new THREE.Vector3(
-        0, 0, (index + 1) * explode * this._explosionFactor * -1,
+        0, 0, (index + 1) * explosionBaseFactor * -1,
       );
       part.position.copy(explosionVector);
     });
   }
 
   getTooltipLabel(partName) {
+    const partNameWithoutNumber = trimEndingNumber(partName);
     const tooltipLabel = {
       [Part.Stator_Coils]: 'Coils',
-      [Part.Stator_Coil]: 'Coil',
       [Part.Stator_ResinCast]: 'Stator Resin Cast',
       [Part.Rotor_ResinCast_Front]: 'Rotor Resin Cast',
       [Part.Rotor_Disk_Back]: 'Rotor Disk',
@@ -163,12 +192,19 @@ class ToolVisualizer {
       Rotor_Magnets: 'Magnets',
       Rotor_MagnetJig: 'Magnet Jig',
       Rotor_MagnetJig_Disk: 'Inner Disk',
-    }[partName];
+      // Used by Coil Winder
+      Outer_Nut_Back: 'Nuts',
+      Outer_Nut_Front: 'Nuts',
+      Stator_CoilWinder_Cheeks: 'Cheek',
+      Stator_CoilWinder_Cheek_Notches: 'Notched Cheek',
+      Stator_CoilWinder_Cheek_Spacers: 'Spacer',
+      NutStacks: 'Nuts',
+    }[partNameWithoutNumber];
     if (tooltipLabel) {
       return tooltipLabel;
     } else {
       return PART_NAME_PREFIXES
-        .reduce((name, prefix) => name.replace(prefix, ''), partName)
+        .reduce((name, prefix) => name.replace(prefix, ''), partNameWithoutNumber)
         .replaceAll('_', '')
         .replace(/([A-Z])/g, ' $1')
         .trim();
@@ -179,15 +215,36 @@ class ToolVisualizer {
     return getMaterial(partName, Material.WOOD);
   }
 
+  // Most of the complexity here is for the Coil Winder visualization.
   getPartNamesByVisibilityLabel(parts) {
-    return Object.fromEntries(
-      parts.map((part) => {
-        const visibilityLabel = this.getTooltipLabel(part.name);
-        const partNames = [part.name];
-        return [visibilityLabel, partNames];
-      }),
+    // Group "array parts" by name for visibility toggling.
+    const [arrayParts, nonArrayParts] = partition(
+      parts,
+      (part) => getTextPrecedingNumberAtEnd(part.name),
+    );
+    // Outer_Nut_Back and Outer_Nut_Front map to same "Nuts" tooltip label.
+    const nonArrayPartsByVisibilityLabel = groupBy(
+      nonArrayParts, (part) => this.getTooltipLabel(part.name),
+    );
+    const nonArrayPartNamesByVisibilityLabel = mapValues(
+      nonArrayPartsByVisibilityLabel, partsToNames,
+    );
+    const arrayPartsByName = groupBy(
+      arrayParts,
+      (part) => getTextPrecedingNumberAtEnd(part.name),
+    );
+    const arrayPartNamesByVisibilityLabel = mapEntries(arrayPartsByName, ([name, groupedParts]) => (
+      [this.getTooltipLabel(name), partsToNames(groupedParts)]
+    ));
+    // NutStacks, Outer_Nut_Back, and Outer_Nut_Front map to same "Nuts" tooltip label.
+    return mergeObjectsWithArrayValues(
+      nonArrayPartNamesByVisibilityLabel, arrayPartNamesByVisibilityLabel,
     );
   }
+}
+
+function partsToNames(parts) {
+  return parts.map((part) => part.name);
 }
 
 function createAmbientLight() {
@@ -265,17 +322,32 @@ function getZExtrema(part, extrema) {
   return Math.round(boundingBox[extrema].z);
 }
 
-function findWireGroup(part) {
-  return part.children.find((c) => c.name.endsWith('WireGroup'));
-}
-
 function getBoundingBoxFromPart(part) {
-  const boundingBox = new THREE.Box3();
   // use wire group instead of mesh for bounding box
   // as the latter's z-min is always 0 for some reason.
-  const wireGroup = findWireGroup(part);
-  boundingBox.setFromObject(wireGroup);
-  return boundingBox;
+  const wireGroups = findWireGroups(part);
+  const boundingBoxes = wireGroups.map((wireGroup) => {
+    const boundingBox = new THREE.Box3();
+    boundingBox.setFromObject(wireGroup);
+    return boundingBox;
+  });
+  return unionBoundingBoxes(boundingBoxes);
+}
+
+function findWireGroups(part) {
+  const wireGroup = part.children.find((c) => c.name.endsWith('WireGroup'));
+  if (wireGroup !== undefined) {
+    return [wireGroup];
+  } else {
+    // search children of grouped "array parts" for wire groups.
+    return part.children.map(findWireGroups).flat();
+  }
+}
+
+function unionBoundingBoxes(boundingBoxes) {
+  return boundingBoxes.reduce((unionBox, boundingBox) => (
+    unionBox.union(boundingBox)
+  ), new THREE.Box3());
 }
 
 function createGetZExtremaFromPart(zMinPartNames) {
@@ -295,6 +367,66 @@ function getXyPlaneAreaFromPart(part) {
 
 function getXyPlaneArea(size) {
   return size.x * size.y;
+}
+
+function ungroupParts(parts) {
+  const [compositeParts, nonCompositeParts] = partition(parts,
+    (part) => part.userData.isCompositePart);
+  const ungrouped = compositeParts.reduce((acc, group) => acc.concat(group.children), []);
+  return nonCompositeParts.concat(ungrouped);
+}
+
+function endsWithNumber(str) {
+  return /[0-9]+$/.test(str);
+}
+
+function getNumberAtEnd(str) {
+  if (endsWithNumber(str)) {
+    return Number(str.match(/[0-9]+$/)[0]);
+  }
+  return null;
+}
+
+function trimEndingNumber(str) {
+  return endsWithNumber(str) ? getTextPrecedingNumberAtEnd(str) : str;
+}
+
+function getTextPrecedingNumberAtEnd(str) {
+  if (endsWithNumber(str)) {
+    const numberAtEnd = getNumberAtEnd(str);
+    return str.replace(new RegExp(numberAtEnd.toString() + '$'), '');
+  }
+  return null;
+}
+
+function makeGetExplosionAmountForChild(explosionBaseFactor) {
+  return (child, parentIndex) => {
+    const { parent } = child;
+    const childIndex = parent.children.indexOf(child);
+    // Don't explode first child of composite part.
+    const explosionIndex = parentIndex === 0 && childIndex === 0
+      ? 0
+      : parentIndex + 1 * childIndex;
+    return (
+      (explosionIndex * explosionBaseFactor) / parent.children.length
+    );
+  };
+}
+
+function getOffset(part, previous, getExplosionAmountForChild) {
+  let offset = 0;
+  if (previous && previous.userData.isCompositePart && !part.userData.isCompositePart) {
+    const lastChildOfPrevious = getLastChild(previous);
+    offset = getExplosionAmountForChild(lastChildOfPrevious, 0);
+  }
+  return offset;
+}
+
+function getLastChild(object) {
+  if (!object.children.length) {
+    return null;
+  }
+  return object.children[object.children.length - 1];
 }
 
 module.exports = ToolVisualizer;

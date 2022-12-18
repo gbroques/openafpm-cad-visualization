@@ -3,7 +3,6 @@
  */
 const WindTurbinePart = {
   Stator_Coils: 'Stator_Coils',
-  Stator_Coil: 'Stator_Coil',
   Stator_ResinCast: 'Stator_ResinCast',
   Rotor_Disk_Front: 'Rotor_Disk_Front',
   Rotor_ResinCast_Front: 'Rotor_ResinCast_Front',

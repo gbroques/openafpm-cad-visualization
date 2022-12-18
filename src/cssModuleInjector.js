@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import partition from './partition';
+import { partition } from './array';
 
 /**
  * Simple implementation of CSS modules.

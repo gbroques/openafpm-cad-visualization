@@ -1,12 +1,13 @@
-export default function makeGroupParts(groupConfigurations) {
+export default function makeGroupParts(transformsByName, getGroupConfigurations) {
   return (parts) => {
+    const groupConfigurations = getGroupConfigurations({ transformsByName, parts });
     groupConfigurations.forEach((configuration) => {
       const { createGroup, partNames, configurePart } = configuration;
       const group = createGroup();
       group.userData.isCompositePart = true;
       parts.forEach((part) => {
         if (partNames.has(part.name)) {
-          configurePart(part);
+          if (configurePart) configurePart(part);
           group.add(part);
         }
       });

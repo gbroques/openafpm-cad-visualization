@@ -102,10 +102,7 @@ class OpenAfpmCadVisualization {
     );
     showLoadingScreen();
     const groupWiresTogether = makeGroupWiresTogether(this._width, this._height);
-    const groupConfigurations = this._visualizer.getGroupConfigurations
-      ? this._visualizer.getGroupConfigurations(transformsByName)
-      : [];
-    const groupParts = makeGroupParts(groupConfigurations);
+    const groupParts = makeGroupParts(transformsByName, this._visualizer.getGroupConfigurations);
     this._previousPromise = loadObj(objUrl)
       .then(groupWiresTogether)
       .then(groupParts)

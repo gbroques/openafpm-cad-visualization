@@ -112,7 +112,7 @@ class WindTurbineVisualizer {
     return parts;
   }
 
-  getGroupConfigurations(transformsByName) {
+  getGroupConfigurations({ transformsByName }) {
     const furlTransforms = transformsByName.furl;
     const tailMatrix = transformsToMatrix4(furlTransforms);
     const tailMatrixInverse = new THREE.Matrix4()
