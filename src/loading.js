@@ -104,4 +104,4 @@ function createSpinner(fill) {
   return svg;
 }
 
-module.exports = createLoadingScreen;
+export default createLoadingScreen;

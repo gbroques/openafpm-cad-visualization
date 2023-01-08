@@ -18,6 +18,7 @@
         "no-param-reassign": "off",
         "no-else-return": "off",
         "no-restricted-syntax": "off",
-        "prefer-template": "off"
+        "prefer-template": "off",
+        "import/extensions": "off"
     }
 }

@@ -4,8 +4,8 @@
 //       and make code more flexible. debug can be passed in options.
 //       Should this be named development?
 import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js';
 import CameraControls from 'camera-controls';
 import { CancelablePromise } from 'cancelable-promise';
 
@@ -353,4 +353,4 @@ function getSortOverrideArray(assembly) {
     : [];
 }
 
-module.exports = OpenAfpmCadVisualization;
+export default OpenAfpmCadVisualization;

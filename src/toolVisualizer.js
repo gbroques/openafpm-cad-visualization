@@ -429,4 +429,4 @@ function getLastChild(object) {
   return object.children[object.children.length - 1];
 }
 
-module.exports = ToolVisualizer;
+export default ToolVisualizer;

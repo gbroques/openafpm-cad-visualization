@@ -1,9 +1,9 @@
 /* eslint-env browser */
 import * as THREE from 'three';
-import { EdgeSplitModifier } from 'three/examples/jsm/modifiers/EdgeSplitModifier';
-import { Line2 } from 'three/examples/jsm/lines/Line2';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
+import { EdgeSplitModifier } from 'three/examples/jsm/modifiers/EdgeSplitModifier.js';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 
 /**
  * Group together FreeCAD object mesh with related wires from exported Wavefront .obj format.
@@ -113,4 +113,4 @@ function findNumberOfWires(object, name) {
     .length;
 }
 
-module.exports = makeGroupWiresTogether;
+export default makeGroupWiresTogether;

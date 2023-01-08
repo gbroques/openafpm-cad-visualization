@@ -50,8 +50,8 @@
         
     </header>
     <div id="container"></div>
-	<script src="openafpm-cad-visualization.js"></script>
-    <script>
+    <script type="module">
+        import OpenAfpmCadVisualization from './openafpm-cad-visualization.js';
         const header = document.getElementsByTagName('header')[0];
         const headerHeight = header.offsetHeight;
         const openAfpmCadVisualization = new OpenAfpmCadVisualization({

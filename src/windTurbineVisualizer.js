@@ -369,4 +369,4 @@ function createAmbientLight() {
   return new THREE.AmbientLight(color, intensity);
 }
 
-module.exports = WindTurbineVisualizer;
+export default WindTurbineVisualizer;
