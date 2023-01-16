@@ -1,121 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
-    <title>OpenAFPM CAD Visualization</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: sans-serif;
-            font-size: 16px;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #43A047;
-            color: white;
-            font-weight: bold;
-            font-size: 1.125rem;
-            padding: 16px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        select {
-            padding: 4px;
-            font-size: 1.125rem;
-        }
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+  <title>OpenAFPM CAD Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      font-size: 16px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #43A047;
+      color: white;
+      font-weight: bold;
+      font-size: 1.125rem;
+      padding: 16px;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    select {
+      padding: 4px;
+      font-size: 1.125rem;
+    }
     </style>
 </head>
 <body>
-    <header>
-        OpenAFPM CAD Visualization
-        <div>
-            <select name="variant">
-                <option value="t-shape">T Shape</option>
-                <option value="h-shape">H Shape</option>
-                <option value="star-shape">Star Shape</option>
-                <option value="t-shape-2f">T Shape 2F</option>
-            </select>
-            <select name="assembly">
-                <option value="wind-turbine">Wind Turbine</option>
-                <option value="stator-mold">Stator Mold</option>
-                <option value="rotor-mold">Rotor Mold</option>
-                <option value="magnet-jig">Magnet Jig</option>
-                <option value="coil-winder">Coil Winder</option>
-            </select>
-        </div>
-        
-    </header>
-    <div id="container"></div>
-    <script type="module">
-        import OpenAfpmCadVisualization from './openafpm-cad-visualization.js';
-        const header = document.getElementsByTagName('header')[0];
-        const headerHeight = header.offsetHeight;
-        const openAfpmCadVisualization = new OpenAfpmCadVisualization({
-            rootDomElement: document.getElementById('container'),
-            width: window.innerWidth,
-            height: window.innerHeight - headerHeight
-        });
-        const handleResize = () => {
-            openAfpmCadVisualization.resize(window.innerWidth, window.innerHeight - headerHeight)
-        };
-        window.addEventListener('resize', handleResize, false);
+  <header>
+    OpenAFPM CAD Visualization
+    <div>
+      <select name="variant">
+        <option value="t-shape">T Shape</option>
+        <option value="h-shape">H Shape</option>
+        <option value="star-shape">Star Shape</option>
+        <option value="t-shape-2f">T Shape 2F</option>
+      </select>
+      <select name="assembly">
+        <option value="wind-turbine">Wind Turbine</option>
+        <option value="stator-mold">Stator Mold</option>
+        <option value="rotor-mold">Rotor Mold</option>
+        <option value="magnet-jig">Magnet Jig</option>
+        <option value="coil-winder">Coil Winder</option>
+      </select>
+    </div>
+  </header>
+  <div id="container"></div>
+  <script type="module">
+    import OpenAfpmCadVisualization from './openafpm-cad-visualization.js';
+    const header = document.getElementsByTagName('header')[0];
+    const headerHeight = header.offsetHeight;
+    const openAfpmCadVisualization = new OpenAfpmCadVisualization({
+      rootDomElement: document.getElementById('container'),
+      width: window.innerWidth,
+      height: window.innerHeight - headerHeight
+    });
+    const handleResize = () => {
+      openAfpmCadVisualization.resize(window.innerWidth, window.innerHeight - headerHeight);
+    };
+    window.addEventListener('resize', handleResize, false);
 
-        function loadAssembly(objUrl, assembly, transformsByName = {}) {
-            openAfpmCadVisualization.visualize(objUrl, assembly, transformsByName);
-            const handleMouseMove = (event) => {
-                openAfpmCadVisualization.handleMouseMove(event)
-            };
-            window.addEventListener('mousemove', handleMouseMove, false);
-            return () => window.removeEventListener('mousemove', handleMouseMove);
-        }
-        let furlTransformsByVariant = null;
-        const state = {
-            variant: 't-shape',
-            assembly: 'wind-turbine'
-        };
-        const setState = nextState => Object.assign(state, nextState);
-        let cleanUp = null;
-        fetch('furlTransforms.json')
-            .then(r => r.json())
-            .then(furlTransforms => {
-                furlTransformsByVariant = furlTransforms;
-                const objUrl = getObjUrl(state);
-                cleanUp = loadAssembly(
-                    objUrl,
-                    'WindTurbine',
-                    {furl: furlTransformsByVariant[state.variant]}
-                );
-            });
-        function getObjUrl(state) {
-            return state.variant + '/' + state.assembly + '.obj';
-        }
-        function kebabCaseToPascalCase(kebabText) {
-            return kebabText.replace(/(^\w|-\w)/g, clearHyphenAndUpperLetter);
-        }
-        function clearHyphenAndUpperLetter(kebabText) {
-            return kebabText.replace(/-/, '').toUpperCase();
-        }
-        function handleSelect(event) {
-            const {name, value} = event.target;
-            setState({[name]: value});
-            const container = document.getElementById('container');
-            container.innerHTML = '';
-            const furlTransforms = furlTransformsByVariant[state.variant];
-            const objUrl = getObjUrl(state);
-            const assembly = kebabCaseToPascalCase(state.assembly);
-            const isWindTurbine = assembly === 'WindTurbine';
-            const transformsByName = isWindTurbine ? { furl: furlTransforms } : {};
-            if (cleanUp) cleanUp();
-            cleanUp = loadAssembly(objUrl, assembly, transformsByName);
-        }
-        const variantSelect = document.querySelector('select[name="variant"]');
-        variantSelect.addEventListener('change', handleSelect);
-        const assemblySelect = document.querySelector('select[name="assembly"]');
-        assemblySelect.addEventListener('change', handleSelect);
-    </script>
+    function loadAssembly(objUrl, assembly, transformsByName = {}) {
+      openAfpmCadVisualization.visualize(objUrl, assembly, transformsByName);
+      const handleMouseMove = (event) => {
+        openAfpmCadVisualization.handleMouseMove(event);
+      };
+      window.addEventListener('mousemove', handleMouseMove, false);
+      return () => window.removeEventListener('mousemove', handleMouseMove);
+    }
+    let furlTransformsByVariant = null;
+    const state = {
+      variant: 't-shape',
+      assembly: 'wind-turbine'
+    };
+    const setState = nextState => Object.assign(state, nextState);
+    let cleanUp = null;
+    fetch('furlTransforms.json')
+      .then(r => r.json())
+      .then(furlTransforms => {
+        furlTransformsByVariant = furlTransforms;
+        const objUrl = getObjUrl(state);
+        cleanUp = loadAssembly(
+          objUrl,
+          'WindTurbine',
+          {furl: furlTransformsByVariant[state.variant]}
+        );
+      });
+    function getObjUrl(state) {
+      return state.variant + '/' + state.assembly + '.obj';
+    }
+    function kebabCaseToPascalCase(kebabText) {
+      return kebabText.replace(/(^\w|-\w)/g, clearHyphenAndUpperLetter);
+    }
+    function clearHyphenAndUpperLetter(kebabText) {
+      return kebabText.replace(/-/, '').toUpperCase();
+    }
+    function handleSelect(event) {
+      const {name, value} = event.target;
+      setState({[name]: value});
+      const container = document.getElementById('container');
+      container.innerHTML = '';
+      const furlTransforms = furlTransformsByVariant[state.variant];
+      const objUrl = getObjUrl(state);
+      const assembly = kebabCaseToPascalCase(state.assembly);
+      const isWindTurbine = assembly === 'WindTurbine';
+      const transformsByName = isWindTurbine ? { furl: furlTransforms } : {};
+      if (cleanUp) cleanUp();
+      cleanUp = loadAssembly(objUrl, assembly, transformsByName);
+    }
+    const variantSelect = document.querySelector('select[name="variant"]');
+    variantSelect.addEventListener('change', handleSelect);
+    const assemblySelect = document.querySelector('select[name="assembly"]');
+    assemblySelect.addEventListener('change', handleSelect);
+  </script>
 </body>
 </html>
