@@ -139,6 +139,12 @@ Performs various clean-up such as [disposing geometries and materials](https://t
 
 **Returns:** `undefined`
 
+## Themeing
+
+Basic themeing support is available via the `data-theme` attribute on the `rootDomElement`.
+
+Supported values include `"light"` (the default) and `"dark"`.
+
 ## Related Repositories
 
 * [openafpm-cad-core](https://github.com/gbroques/openafpm-cad-core)

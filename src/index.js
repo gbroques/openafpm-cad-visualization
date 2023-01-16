@@ -19,6 +19,10 @@ import ToolVisualizer from './toolVisualizer';
 import makeGroupParts from './makeGroupParts';
 import findMeshes from './findMeshes';
 import setupVisibilityFolder from './setupVisibilityFolder';
+import CssModuleInjector from './cssModuleInjector';
+import theme from './theme';
+
+const CSS_NAMESPACE = 'openafpm-root';
 
 CameraControls.install({ THREE });
 
@@ -34,6 +38,11 @@ class OpenAfpmCadVisualization {
     this._height = height;
 
     this._renderer = createRenderer(width, height);
+
+    // Add theme styles.
+    const cssModuleInjecter = new CssModuleInjector(CSS_NAMESPACE);
+    const classes = cssModuleInjecter.inject(theme);
+    rootDomElement.classList.add(classes.root);
   }
 
   visualize(objUrl, assembly, transformsByName = {}) {

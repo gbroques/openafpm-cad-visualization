@@ -31,17 +31,17 @@ export default class CssModuleInjector {
       .map(([classKey, object], index) => {
         const className = `${this._namespace}-${index}-${classKey}`;
 
-        // https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes
-        const [pseudoClassEntries, entries] = partition(
+        // https://sass-lang.com/documentation/style-rules/parent-selector
+        const [parentSelectorEntries, entries] = partition(
           Object.entries(object),
-          (entry) => entry[0].startsWith('&:'),
+          (entry) => entry[0].startsWith('&'),
         );
         const classesObject = Object.fromEntries(entries);
         const ruleset = toClassRuleset(className, classesObject);
-        const pseudoClassRulesets = pseudoClassEntries.map(([key, value]) => (
+        const parentClassRulesets = parentSelectorEntries.map(([key, value]) => (
           toClassRuleset(key.replace('&', className), value)
         ));
-        const rulesets = [ruleset].concat(pseudoClassRulesets);
+        const rulesets = [ruleset].concat(parentClassRulesets);
         return rulesets.join('');
       }).join('');
   }

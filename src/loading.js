@@ -1,34 +1,49 @@
 /* eslint-env browser */
+import CssModuleInjector from './cssModuleInjector';
+
+const CSS_NAMESPACE = 'openafpm-loading-indicator';
+
+const createStyles = ({ windowHeight, opacityDuration }) => ({
+  container: {
+    height: `${windowHeight}px`,
+    width: '100%',
+    display: 'flex',
+    'align-items': 'center',
+    'flex-direction': 'column',
+    'justify-content': 'center',
+    opacity: '1',
+    transition: `opacity ${opacityDuration}ms ease-in-out`,
+  },
+  text: {
+    'font-weight': 'bold',
+    margin: '0',
+    'margin-top': '16px',
+    color: 'var(--openafpm-loading-indicator-color)',
+    'font-size': '0.875rem',
+    'line-height': '1.5',
+  },
+  svg: {
+    fill: 'var(--openafpm-loading-indicator-color)',
+  },
+});
+
 function createLoadingScreen(
   rootDomElement,
   opacityDuration,
   windowHeight,
-  color = '#323232',
 ) {
+  const cssModuleInjecter = new CssModuleInjector(CSS_NAMESPACE);
+  const styles = createStyles({ windowHeight, opacityDuration });
+  const classes = cssModuleInjecter.inject(styles);
   const container = window.document.createElement('div');
-  container.style = `
-  height: ${windowHeight}px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-  opacity: 1;
-  transition: opacity ${opacityDuration}ms ease-in-out;
-  `;
+  container.classList.add(classes.container);
 
-  const spinner = createSpinner(color);
+  const spinner = createSpinner();
+  spinner.classList.add(classes.svg);
   container.appendChild(spinner);
 
   const p = window.document.createElement('p');
-  p.style = `
-  font-weight: bold;
-  margin: 0;
-  margin-top: 16px;
-  color: ${color};
-  font-size: 0.875rem;
-  line-height: 1.5;';
-  `;
+  p.classList.add(classes.text);
   p.textContent = 'LOADING';
   container.appendChild(p);
 
@@ -57,11 +72,10 @@ function createLoadingScreen(
  * By Francesca Bonaccorsi, Italy.
  * {@link https://thenounproject.com/term/propeller/77747/}
  */
-function createSpinner(fill) {
+function createSpinner() {
   const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const spinnerClass = 'spinner';
   svg.setAttribute('viewBox', '0 0 90 90');
-  svg.setAttribute('fill', fill);
   svg.setAttribute('class', spinnerClass);
 
   const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style');

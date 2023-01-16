@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,32 +7,57 @@
   <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
   <title>OpenAFPM CAD Visualization</title>
   <style>
+    :root {
+      --spacing: 8px;
+    }
+    html[data-theme='light'] {
+      --primary-color-main: #43A047; /* Green 600 - https://www.materialui.co/colors */
+      --background-default: #FFFFFF;
+      --text-color: rgba(0, 0, 0, 0.87);
+    }
+    html[data-theme='dark'] {
+      --primary-color-main: #404040;
+      --background-default: #212121;
+      --text-color: #FFFFFF;
+    }
     body {
       margin: 0;
       font-family: sans-serif;
       font-size: 16px;
+      background-color: var(--background-default);
+      color: var(--text-color);
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #43A047;
+      background-color: var(--primary-color-main);
       color: white;
       font-weight: bold;
       font-size: 1.125rem;
-      padding: 16px;
+      padding: calc(var(--spacing) * 2);
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
     }
     select {
-      padding: 4px;
+      padding: calc(var(--spacing) * 0.5);
       font-size: 1.125rem;
+      background-color: white;
+      color: rgba(0, 0, 0, 0.87);
+      border: none;
+      border-radius: 2px;
+    }
+    .select-container {
+      display: inline-flex;
+    }
+    .select-container > *:not(:last-child) {
+      margin-right: calc(var(--spacing) * 2);
     }
     </style>
 </head>
 <body>
   <header>
     OpenAFPM CAD Visualization
-    <div>
+    <div class="select-container">
       <select name="variant">
         <option value="t-shape">T Shape</option>
         <option value="h-shape">H Shape</option>
@@ -53,8 +78,11 @@
     import OpenAfpmCadVisualization from './openafpm-cad-visualization.js';
     const header = document.getElementsByTagName('header')[0];
     const headerHeight = header.offsetHeight;
+    const rootDomElement = document.getElementById('container');
+    const theme = document.documentElement.getAttribute('data-theme');
+    rootDomElement.setAttribute('data-theme', theme);
     const openAfpmCadVisualization = new OpenAfpmCadVisualization({
-      rootDomElement: document.getElementById('container'),
+      rootDomElement,
       width: window.innerWidth,
       height: window.innerHeight - headerHeight
     });
@@ -64,7 +92,8 @@
     window.addEventListener('resize', handleResize, false);
 
     function loadAssembly(objUrl, assembly, transformsByName = {}) {
-      openAfpmCadVisualization.visualize(objUrl, assembly, transformsByName);
+      const theme = document.documentElement.getAttribute("data-theme");
+      openAfpmCadVisualization.visualize(objUrl, assembly, transformsByName, theme);
       const handleMouseMove = (event) => {
         openAfpmCadVisualization.handleMouseMove(event);
       };
