@@ -93,7 +93,9 @@
 
     function loadAssembly(objUrl, assembly, transformsByName = {}) {
       const theme = document.documentElement.getAttribute("data-theme");
-      openAfpmCadVisualization.visualize(objUrl, assembly, transformsByName, theme);
+      const loadObj = () => fetch(objUrl).then(response => response.text());
+      const transformsByNamePromise = Promise.resolve(transformsByName);
+      openAfpmCadVisualization.visualize(loadObj, assembly, transformsByNamePromise);
       const handleMouseMove = (event) => {
         openAfpmCadVisualization.handleMouseMove(event);
       };

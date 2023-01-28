@@ -1,5 +1,6 @@
-export default function makeGroupParts(transformsByName, getGroupConfigurations) {
-  return (parts) => {
+export default function makeGroupParts(transformsByNamePromise, getGroupConfigurations) {
+  return async (parts) => {
+    const transformsByName = await transformsByNamePromise;
     const groupConfigurations = getGroupConfigurations({ transformsByName, parts });
     groupConfigurations.forEach((configuration) => {
       const { createGroup, partNames, configurePart } = configuration;
@@ -15,7 +16,7 @@ export default function makeGroupParts(transformsByName, getGroupConfigurations)
     });
     const groupedPartNames = unionSets(groupConfigurations
       .map(({ partNames }) => partNames));
-    return parts.filter((part) => !groupedPartNames.has(part.name));
+    return [parts.filter((part) => !groupedPartNames.has(part.name)), transformsByName];
   };
 }
 

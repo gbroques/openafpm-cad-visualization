@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js';
 import CameraControls from 'camera-controls';
-import { CancelablePromise } from 'cancelable-promise';
+import { cancelable } from 'cancelable-promise';
 
 import makeGroupWiresTogether from './makeGroupWiresTogether';
 import debounce from './debounce';
@@ -45,7 +45,7 @@ class OpenAfpmCadVisualization {
     rootDomElement.classList.add(classes.root);
   }
 
-  visualize(objUrl, assembly, transformsByName = {}) {
+  visualize(loadObj, assembly, transformsByNamePromise = Promise.resolve({})) {
     this._cleanUpVisualization();
     this._visualizer = assembly === 'WindTurbine'
       ? new WindTurbineVisualizer()
@@ -111,12 +111,16 @@ class OpenAfpmCadVisualization {
     );
     showLoadingScreen();
     const groupWiresTogether = makeGroupWiresTogether(this._width, this._height);
-    const groupParts = makeGroupParts(transformsByName, this._visualizer.getGroupConfigurations);
-    this._previousPromise = loadObj(objUrl)
+    const groupParts = makeGroupParts(
+      transformsByNamePromise, this._visualizer.getGroupConfigurations,
+    );
+    const objTextPromise = cancelable(loadObj());
+    this._previousPromise = objTextPromise
+      .then(parseObjText)
       .then(groupWiresTogether)
       .then(groupParts)
       .then(hideLoadingScreen)
-      .then((parts) => {
+      .then(([parts, transformsByName]) => {
         parts.forEach((part) => {
           const meshes = findMeshes(part);
           meshes.forEach((mesh) => {
@@ -323,20 +327,9 @@ function createRenderer(width, height) {
   return renderer;
 }
 
-function loadObj(url) {
-  return new CancelablePromise((resolve, reject) => {
-    const objLoader = new OBJLoader();
-    objLoader.load(url, resolve, handleProgress, reject);
-  });
-}
-
-function handleProgress(xhr) {
-  const url = new URL(xhr.target.responseURL);
-  const filename = url.pathname.slice(1);
-  const progressPercentage = (xhr.loaded / xhr.total) * 100;
-  if (DEBUG) {
-    console.log(`index.js: ${filename} ${progressPercentage}% loaded.`);
-  }
+function parseObjText(objText) {
+  const objLoader = new OBJLoader();
+  return objLoader.parse(objText);
 }
 
 function createAppContainer(opacityDuration) {
