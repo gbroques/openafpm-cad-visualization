@@ -342,6 +342,10 @@ function createAppContainer(opacityDuration) {
 
 function getSortOverrideArray(assembly) {
   const sortOverrideArrayByAssembly = {
+    StatorMold: [
+      'LocatingWashers',
+      'LocatingBolts',
+    ],
     RotorMold: [
       'Rotor_Mold_Surround',
       'Screws',
