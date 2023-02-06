@@ -6,15 +6,15 @@ export function forEachWithPrevious(array, fn) {
 }
 
 export function groupBy(array, getKey) {
-  return array.reduce((acc, element) => {
+  return array.reduce((map, element) => {
     const key = getKey(element);
-    if (key === null) return acc;
-    if (!acc[key]) {
-      acc[key] = [];
+    if (key === null) return map;
+    if (!map.has(key)) {
+      map.set(key, []);
     }
-    acc[key].push(element);
-    return acc;
-  }, {});
+    map.get(key).push(element);
+    return map;
+  }, new Map());
 }
 
 export function partition(array, predicate) {
@@ -22,4 +22,8 @@ export function partition(array, predicate) {
     array.filter(predicate),
     array.filter((e) => !predicate(e)),
   ];
+}
+
+export function reverseArray(array) {
+  return [...array].reverse();
 }
