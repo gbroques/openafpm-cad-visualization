@@ -243,8 +243,8 @@ class WindTurbineVisualizer {
         Part.Rotor_ResinCast_Back,
       ],
       Coils: [Part.Stator_Coils],
-      'Rotor Disk': [Part.Rotor_Disk_Front, Part.Rotor_Disk_Back],
       Magnets: [Part.Rotor_Magnets_Front, Part.Rotor_Magnets_Back],
+      'Rotor Disks': [Part.Rotor_Disk_Front, Part.Rotor_Disk_Back],
       Hub: [
         Part.Hub_Flange,
         Part.Hub_Flange_Cover_Front,
