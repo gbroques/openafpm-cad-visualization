@@ -43,6 +43,7 @@ class OpenAfpmCadVisualization {
     const classes = cssModuleInjector.getClasses('root');
     rootDomElement.classList.add(classes.root);
     cssModuleInjector.inject();
+    overrideDatGuiStyles();
   }
 
   visualize(loadObj, assembly, transformsByNamePromise = Promise.resolve({})) {
@@ -352,6 +353,35 @@ function getSortOverrideArray(assembly) {
   return sortOverrideArrayByAssembly[assembly]
     ? sortOverrideArrayByAssembly[assembly]
     : [];
+}
+
+function overrideDatGuiStyles() {
+  const style = window.document.createElement('style');
+  style.type = 'text/css';
+  // https://github.com/dataarts/dat.gui/blob/v0.7.9/src/dat/gui/_structure.scss
+  // https://github.com/dataarts/dat.gui/issues/198
+  style.innerHTML = `
+    .dg li:not(.folder) {
+      height: initial;
+      min-height: 27px;
+    }
+    .dg .cr {
+      height: initial;
+      min-height: 27px;
+    }
+    .dg .closed li:not(.title), .dg .closed ul li, .dg .closed ul li > * {
+      height: 0;
+      min-height: 0;
+    }
+  `;
+  style.dataset.namespace = 'openafpm-dat-gui-overrides';
+  const head = window.document.getElementsByTagName('head')[0];
+  try {
+    head.appendChild(style);
+  } catch (e) {
+    // Unable to inject CSS, probably because of a Content Security Policy.
+    console.error(e);
+  }
 }
 
 export default OpenAfpmCadVisualization;
