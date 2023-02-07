@@ -78,23 +78,25 @@
   <div id="container"></div>
   <script type="module">
     import OpenAfpmCadVisualization from './openafpm-cad-visualization.js';
-    const header = document.getElementsByTagName('header')[0];
-    const headerHeight = header.offsetHeight;
+    const getHeaderHeight = () => {
+      const header = document.getElementsByTagName('header')[0];
+      return header.offsetHeight;
+    };
     const rootDomElement = document.getElementById('container');
     const theme = document.documentElement.getAttribute('data-theme');
     rootDomElement.setAttribute('data-theme', theme);
     const setRootDomElementHeight = () => {
-      rootDomElement.style.height = window.innerHeight - headerHeight + 'px';
+      rootDomElement.style.height = window.innerHeight - getHeaderHeight() + 'px';
     };
     setRootDomElementHeight();
     const openAfpmCadVisualization = new OpenAfpmCadVisualization({
       rootDomElement,
       width: window.innerWidth,
-      height: window.innerHeight - headerHeight
+      height: window.innerHeight - getHeaderHeight()
     });
     const handleResize = () => {
       setRootDomElementHeight();
-      openAfpmCadVisualization.resize(window.innerWidth, window.innerHeight - headerHeight);
+      openAfpmCadVisualization.resize(window.innerWidth, window.innerHeight - getHeaderHeight());
     };
     window.addEventListener('resize', handleResize, false);
 
