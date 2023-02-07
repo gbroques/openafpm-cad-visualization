@@ -79,7 +79,7 @@ class CssModuleInjector {
 function injectCss(namespace, cssContent) {
   const style = window.document.createElement('style');
   style.type = 'text/css';
-  style.innerText = cssContent;
+  style.innerHTML = cssContent;
   style.dataset.namespace = namespace;
   const head = window.document.getElementsByTagName('head')[0];
   try {
