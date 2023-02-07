@@ -83,12 +83,17 @@
     const rootDomElement = document.getElementById('container');
     const theme = document.documentElement.getAttribute('data-theme');
     rootDomElement.setAttribute('data-theme', theme);
+    const setRootDomElementHeight = () => {
+      rootDomElement.style.height = window.innerHeight - headerHeight + 'px';
+    };
+    setRootDomElementHeight();
     const openAfpmCadVisualization = new OpenAfpmCadVisualization({
       rootDomElement,
       width: window.innerWidth,
       height: window.innerHeight - headerHeight
     });
     const handleResize = () => {
+      setRootDomElementHeight();
       openAfpmCadVisualization.resize(window.innerWidth, window.innerHeight - headerHeight);
     };
     window.addEventListener('resize', handleResize, false);

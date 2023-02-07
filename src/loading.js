@@ -1,18 +1,18 @@
 /* eslint-env browser */
-import CssModuleInjector from './cssModuleInjector';
+import cssModuleInjector from './cssModuleInjector';
 
-const CSS_NAMESPACE = 'openafpm-loading-indicator';
+const OPACITY_DURATION = 200;
 
-const createStyles = ({ windowHeight, opacityDuration }) => ({
+const styles = {
   container: {
-    height: `${windowHeight}px`,
+    height: '100%',
     width: '100%',
     display: 'flex',
     'align-items': 'center',
     'flex-direction': 'column',
     'justify-content': 'center',
     opacity: '1',
-    transition: `opacity ${opacityDuration}ms ease-in-out`,
+    transition: `opacity ${OPACITY_DURATION}ms ease-in-out`,
   },
   text: {
     'font-weight': 'bold',
@@ -25,16 +25,12 @@ const createStyles = ({ windowHeight, opacityDuration }) => ({
   svg: {
     fill: 'var(--openafpm-loading-indicator-color)',
   },
-});
+};
 
-function createLoadingScreen(
-  rootDomElement,
-  opacityDuration,
-  windowHeight,
-) {
-  const cssModuleInjecter = new CssModuleInjector(CSS_NAMESPACE);
-  const styles = createStyles({ windowHeight, opacityDuration });
-  const classes = cssModuleInjecter.inject(styles);
+cssModuleInjector.set('loading-indicator', styles);
+
+function createLoadingScreen(rootDomElement) {
+  const classes = cssModuleInjector.getClasses('loading-indicator');
   const container = window.document.createElement('div');
   container.classList.add(classes.container);
 
@@ -61,7 +57,7 @@ function createLoadingScreen(
             rootDomElement.removeChild(container);
           }
           resolve(...args);
-        }, opacityDuration);
+        }, OPACITY_DURATION);
       });
     },
   };
@@ -117,5 +113,7 @@ function createSpinner() {
   svg.appendChild(g);
   return svg;
 }
+
+export { OPACITY_DURATION };
 
 export default createLoadingScreen;

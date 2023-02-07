@@ -81,6 +81,8 @@ Construct a new OpenAFPM CAD visualization instance.
 
 Behind the scenes constructs a [WebGLRenderer](https://threejs.org/docs/?q=render#api/en/renderers/WebGLRenderer), and a single instance is intended to be used throughout the lifetime of various visualizations (i.e. Wind Turbine and tools).
 
+It also appends [`style`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/style) elements to the `head` of the document.
+
 ##### Arguments
 
 |Name|Type|Required|Description|

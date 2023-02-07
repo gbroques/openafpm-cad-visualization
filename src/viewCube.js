@@ -1,8 +1,6 @@
 /* eslint-env browser */
 import * as THREE from 'three';
-import CssModuleInjector from './cssModuleInjector';
-
-const CSS_NAMESPACE = 'openafpm-view-cube';
+import cssModuleInjector from './cssModuleInjector';
 
 const SIZE = '110px';
 const MARGIN = '10px';
@@ -69,6 +67,8 @@ const styles = {
     transform: `rotateZ(180deg) translateZ(calc(-${SIZE} / 2))`,
   },
 };
+
+cssModuleInjector.set('view-cube', styles);
 
 const orientation = {
   xPos: {
@@ -141,9 +141,7 @@ export default class ViewCube {
  * @returns {HTMLElement} View cube element.
  */
 function createViewCube(rotateCameraTo, faces) {
-  // inject styles into head of page
-  const cssModuleInjecter = new CssModuleInjector(CSS_NAMESPACE);
-  const classes = cssModuleInjecter.inject(styles);
+  const classes = cssModuleInjector.getClasses('view-cube');
 
   // create view cube container
   const viewCube = window.document.createElement('div');

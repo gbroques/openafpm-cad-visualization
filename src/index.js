@@ -12,17 +12,17 @@ import { cancelable } from 'cancelable-promise';
 import makeGroupWiresTogether from './makeGroupWiresTogether';
 import debounce from './debounce';
 import createTooltip from './tooltip';
-import createLoadingScreen from './loading';
+import createLoadingScreen, { OPACITY_DURATION } from './loading';
 import ViewCube from './viewCube';
 import WindTurbineVisualizer from './windTurbineVisualizer';
 import ToolVisualizer from './toolVisualizer';
 import makeGroupParts from './makeGroupParts';
 import findMeshes from './findMeshes';
 import setupVisibilityFolder from './setupVisibilityFolder';
-import CssModuleInjector from './cssModuleInjector';
+import cssModuleInjector from './cssModuleInjector';
 import theme from './theme';
 
-const CSS_NAMESPACE = 'openafpm-root';
+cssModuleInjector.set('root', theme);
 
 CameraControls.install({ THREE });
 
@@ -40,9 +40,9 @@ class OpenAfpmCadVisualization {
     this._renderer = createRenderer(width, height);
 
     // Add theme styles.
-    const cssModuleInjecter = new CssModuleInjector(CSS_NAMESPACE);
-    const classes = cssModuleInjecter.inject(theme);
+    const classes = cssModuleInjector.getClasses('root');
     rootDomElement.classList.add(classes.root);
+    cssModuleInjector.inject();
   }
 
   visualize(loadObj, assembly, transformsByNamePromise = Promise.resolve({})) {
@@ -105,9 +105,8 @@ class OpenAfpmCadVisualization {
       axesHelper.name = 'Axes';
       this._scene.add(axesHelper);
     }
-    const opacityDuration = 200; // in milliseconds
     const { showLoadingScreen, hideLoadingScreen } = createLoadingScreen(
-      this._rootDomElement, opacityDuration, this._height,
+      this._rootDomElement,
     );
     showLoadingScreen();
     const groupWiresTogether = makeGroupWiresTogether(this._width, this._height);
@@ -159,7 +158,7 @@ class OpenAfpmCadVisualization {
         );
 
         // Must append container to root DOM element before this._mount()
-        const container = createAppContainer(opacityDuration);
+        const container = createAppContainer(OPACITY_DURATION);
         this._rootDomElement.appendChild(container);
         this._mount(container, gui.domElement);
         container.style.opacity = '1';

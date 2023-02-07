@@ -4,32 +4,51 @@ import { partition } from './array';
 /**
  * Simple implementation of CSS modules.
  */
-export default class CssModuleInjector {
+class CssModuleInjector {
   constructor(namespace) {
     this._namespace = namespace;
+    this._stylesByKey = new Map();
   }
 
   /**
-   * Inject styles by appending CSS into the head of the page.
+   * Register styles.
    *
+   * @param {string} key Unique key.
    * @param {Object} styles Keys are class names,
    *                        and values are an object with CSS property-value pairs.
+   */
+  set(key, styles) {
+    this._stylesByKey.set(key, styles);
+  }
+
+  /**
+   * Get classes for previously registered styles.
+   *
+   * @param {string} key Unique key.
    * @returns {Object} "classes" object where keys are class names,
    *                   as defined as keys in styles object,
    *                   and values are a unique and generated class name.
    */
-  inject(styles) {
-    const cssContent = this._fromStylesObjectToCss(styles);
-    const classes = this._fromStylesObjectToClassesObject(styles);
-    injectCss(cssContent);
-    return classes;
+  getClasses(key) {
+    const styles = this._stylesByKey.get(key);
+    return this._fromStylesObjectToClassesObject(key, styles);
+  }
+
+  /**
+   * Inject styles by appending CSS into the head of the page.
+   */
+  inject() {
+    for (const [key, styles] of this._stylesByKey) {
+      const cssContent = this._fromStylesObjectToCss(key, styles);
+      injectCss(this._namespace + '-' + key, cssContent);
+    }
   }
 
   // https://css-tricks.com/css-ruleset-terminology/
-  _fromStylesObjectToCss(styles) {
+  _fromStylesObjectToCss(key, styles) {
     return Object.entries(styles)
       .map(([classKey, object], index) => {
-        const className = `${this._namespace}-${index}-${classKey}`;
+        const className = `${this._namespace}-${key}-${index}-${classKey}`;
 
         // https://sass-lang.com/documentation/style-rules/parent-selector
         const [parentSelectorEntries, entries] = partition(
@@ -38,32 +57,33 @@ export default class CssModuleInjector {
         );
         const classesObject = Object.fromEntries(entries);
         const ruleset = toClassRuleset(className, classesObject);
-        const parentClassRulesets = parentSelectorEntries.map(([key, value]) => (
-          toClassRuleset(key.replace('&', className), value)
+        const parentClassRulesets = parentSelectorEntries.map(([property, value]) => (
+          toClassRuleset(property.replace('&', className), value)
         ));
         const rulesets = [ruleset].concat(parentClassRulesets);
         return rulesets.join('');
       }).join('');
   }
 
-  _fromStylesObjectToClassesObject(styles) {
+  _fromStylesObjectToClassesObject(key, styles) {
     return Object.keys(styles)
       .reduce((classesAccumulator, className, index) => (
         {
           ...classesAccumulator,
-          [className]: `${this._namespace}-${index}-${className}`,
+          [className]: `${this._namespace}-${key}-${index}-${className}`,
         }
       ), {});
   }
 }
 
-function injectCss(cssContent) {
-  const injected = window.document.createElement('style');
-  injected.type = 'text/css';
-  injected.innerHTML = cssContent;
+function injectCss(namespace, cssContent) {
+  const style = window.document.createElement('style');
+  style.type = 'text/css';
+  style.innerText = cssContent;
+  style.dataset.namespace = namespace;
   const head = window.document.getElementsByTagName('head')[0];
   try {
-    head.appendChild(injected);
+    head.appendChild(style);
   } catch (e) {
     // Unable to inject CSS, probably because of a Content Security Policy.
     console.error(e);
@@ -90,3 +110,7 @@ function generateIndentation(level) {
       .join('')
   );
 }
+
+const NAMESPACE = 'openafpm';
+
+export default new CssModuleInjector(NAMESPACE);

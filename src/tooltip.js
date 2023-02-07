@@ -1,7 +1,5 @@
 /* eslint-env browser */
-import CssModuleInjector from './cssModuleInjector';
-
-const CSS_NAMESPACE = 'openafpm-tooltip';
+import cssModuleInjector from './cssModuleInjector';
 
 const styles = {
   tooltip: {
@@ -21,9 +19,10 @@ const styles = {
   },
 };
 
+cssModuleInjector.set('tooltip', styles);
+
 export default function createTooltip() {
-  const cssModuleInjecter = new CssModuleInjector(CSS_NAMESPACE);
-  const classes = cssModuleInjecter.inject(styles);
+  const classes = cssModuleInjector.getClasses('tooltip');
   const tooltip = window.document.createElement('div');
   tooltip.classList.add(classes.tooltip);
   return tooltip;
