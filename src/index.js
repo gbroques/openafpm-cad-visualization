@@ -161,7 +161,9 @@ class OpenAfpmCadVisualization {
         // Must append container to root DOM element before this._mount()
         const container = createAppContainer(OPACITY_DURATION);
         this._rootDomElement.appendChild(container);
-        this._mount(container, gui.domElement);
+        this._guiContainer = createGuiContainer(gui.domElement);
+        this._setGuiContainerTop();
+        this._mount(container);
         container.style.opacity = '1';
         this._cameraControls.update();
         this._isModelLoaded = true;
@@ -173,16 +175,21 @@ class OpenAfpmCadVisualization {
   resize(width, height) {
     this._width = width;
     this._height = height;
-    const aspectRatio = width / height;
-    if (this._camera.isOrthographicCamera) {
-      const { viewSize } = this._camera;
-      this._camera.left = -(aspectRatio * viewSize) / 2;
-      this._camera.right = (aspectRatio * viewSize) / 2;
-    } else {
-      this._camera.aspect = aspectRatio;
+    if (this._camera) {
+      const aspectRatio = width / height;
+      if (this._camera.isOrthographicCamera) {
+        const { viewSize } = this._camera;
+        this._camera.left = -(aspectRatio * viewSize) / 2;
+        this._camera.right = (aspectRatio * viewSize) / 2;
+      } else {
+        this._camera.aspect = aspectRatio;
+      }
+      this._camera.updateProjectionMatrix();
     }
-    this._camera.updateProjectionMatrix();
-    this._cameraControls.setViewport(0, 0, width, height);
+    if (this._cameraControls) {
+      this._cameraControls.setViewport(0, 0, width, height);
+    }
+    this._setGuiContainerTop();
     this._renderer.setSize(width, height);
     this._render();
   }
@@ -217,15 +224,18 @@ class OpenAfpmCadVisualization {
     }
   }
 
-  _mount(rootDomElement, guiDomElement) {
-    const { top } = rootDomElement.getBoundingClientRect();
-    const guiContainer = createGuiContainer(guiDomElement);
-    guiContainer.style.top = `${top}px`;
-
-    rootDomElement.appendChild(guiContainer);
+  _mount(rootDomElement) {
+    rootDomElement.appendChild(this._guiContainer);
     rootDomElement.appendChild(this._renderer.domElement);
     rootDomElement.appendChild(this._tooltip);
     rootDomElement.appendChild(this._viewCube.domElement);
+  }
+
+  _setGuiContainerTop() {
+    if (this._guiContainer) {
+      const { top } = this._rootDomElement.getBoundingClientRect();
+      this._guiContainer.style.top = `${top}px`;
+    }
   }
 
   /**
@@ -255,7 +265,7 @@ class OpenAfpmCadVisualization {
   _render(updateCameraControls = true) {
     // update camera controls conditionally to avoid
     // visual jumping when toggling the visibility of parts.
-    if (updateCameraControls) {
+    if (this._cameraControls && updateCameraControls) {
       const delta = this._clock.getDelta();
       this._cameraControls.update(delta);
     }
@@ -266,7 +276,7 @@ class OpenAfpmCadVisualization {
       this._visualizer.explode(this._controller);
     }
     this._renderer.render(this._scene, this._camera);
-    this._viewCube.update();
+    if (this._viewCube) this._viewCube.update();
   }
 }
 
