@@ -275,7 +275,9 @@ class OpenAfpmCadVisualization {
       if (this._visualizer.handleRender) this._visualizer.handleRender(this._controller);
       this._visualizer.explode(this._controller);
     }
-    this._renderer.render(this._scene, this._camera);
+    if (this._scene && this._camera) {
+      this._renderer.render(this._scene, this._camera);
+    }
     if (this._viewCube) this._viewCube.update();
   }
 }
