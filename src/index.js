@@ -12,7 +12,8 @@ import { cancelable } from 'cancelable-promise';
 import makeGroupWiresTogether from './makeGroupWiresTogether';
 import debounce from './debounce';
 import createTooltip from './tooltip';
-import createLoadingScreen, { OPACITY_DURATION } from './loading';
+import createLoadingScreen, { OPACITY_DURATION } from './loadingScreen';
+import createErrorScreen from './errorScreen';
 import ViewCube from './viewCube';
 import WindTurbineVisualizer from './windTurbineVisualizer';
 import ToolVisualizer from './toolVisualizer';
@@ -169,7 +170,12 @@ class OpenAfpmCadVisualization {
         this._isModelLoaded = true;
         this._render();
       })
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
+        const { showErrorScreen } = createErrorScreen(this._rootDomElement);
+        hideLoadingScreen()
+          .then(() => showErrorScreen(error.message));
+      });
   }
 
   resize(width, height) {

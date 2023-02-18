@@ -18,12 +18,12 @@ const styles = {
     'font-weight': 'bold',
     margin: '0',
     'margin-top': '16px',
-    color: 'var(--openafpm-loading-indicator-color)',
+    color: 'var(--openafpm-foreground-color)',
     'font-size': '0.875rem',
     'line-height': '1.5',
   },
   svg: {
-    fill: 'var(--openafpm-loading-indicator-color)',
+    fill: 'var(--openafpm-foreground-color)',
   },
 };
 
