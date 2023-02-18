@@ -255,7 +255,15 @@ class WindTurbineVisualizer {
       Frame: [Part.Frame, Part.Studs_Frame],
       'Yaw Bearing': [Part.YawBearing],
       'Tail Hinge': [Part.Tail_Hinge_Inner],
-      Tail: [TAIL_NAME],
+      Boom: [
+        Part.Tail_Hinge_Outer,
+        Part.Tail_Boom_Pipe,
+        Part.Tail_Boom_Support,
+        Part.Tail_Stop_HighEnd,
+        Part.Vane_Bracket_Top,
+        Part.Vane_Bracket_Bottom
+      ],
+      Vane: [Part.Tail_Vane]
     };
   }
 

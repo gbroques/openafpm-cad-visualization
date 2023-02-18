@@ -66,7 +66,7 @@ function createChangeVisibility(
   onControllerChange,
 ) {
   return (partName) => {
-    const part = parts.find((p) => p.name === partName);
+    const part = findPart(parts, partName);
     if (part === undefined) {
       console.warn(`No part named '${partName}' found in parts`, parts);
       return;
@@ -103,4 +103,20 @@ function createRemoveVisibleMesh(visibleMeshes) {
       visibleMeshes.splice(index, 1);
     }
   };
+}
+
+function findPart(parts, partName) {
+  let part = parts.find((p) => p.name === partName);
+  if (part === undefined) {
+    const compositePartChildren = getCompositePartChildren(parts);
+    part = compositePartChildren.find((p) => p.name === partName);
+  }
+  return part;
+}
+
+function getCompositePartChildren(parts) {
+  return parts
+    .filter((p) => p.userData.isCompositePart)
+    .map((p) => p.children)
+    .flat();
 }
