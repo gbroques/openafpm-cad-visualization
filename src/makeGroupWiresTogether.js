@@ -26,6 +26,9 @@ function makeGroupWiresTogether(width, height) {
       const wireMeshes = [...Array(numberOfWires).keys()].map((n) => {
         const wireName = `${importedMesh.name}Wire${n}`;
         const importedWireMesh = object.getObjectByName(wireName);
+        if (!importedWireMesh) {
+          throw new Error(`Unable to find wire "${wireName}" for mesh "${importedMesh.name}".`);
+        }
         return createWireMesh(importedWireMesh, wireMaterial);
       });
       const wireMeshGroup = wireMeshes.reduce((group, wireMesh) => {
