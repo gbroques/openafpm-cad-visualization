@@ -1,7 +1,7 @@
-export default function makeGroupParts(transformsByNamePromise, getGroupConfigurations) {
+export default function makeGroupParts(furlTransformPromise, getGroupConfigurations) {
   return async (parts) => {
-    const transformsByName = await transformsByNamePromise;
-    const groupConfigurations = getGroupConfigurations({ transformsByName, parts });
+    const furlTransform = await furlTransformPromise;
+    const groupConfigurations = getGroupConfigurations({ furlTransform, parts });
     groupConfigurations.forEach((configuration) => {
       const { createGroup, partNames, configurePart } = configuration;
       const group = createGroup();
@@ -16,7 +16,7 @@ export default function makeGroupParts(transformsByNamePromise, getGroupConfigur
     });
     const groupedPartNames = unionSets(groupConfigurations
       .map(({ partNames }) => partNames));
-    return [parts.filter((part) => !groupedPartNames.has(part.name)), transformsByName];
+    return [parts.filter((part) => !groupedPartNames.has(part.name)), furlTransform];
   };
 }
 

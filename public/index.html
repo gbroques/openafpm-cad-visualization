@@ -100,33 +100,33 @@
     };
     window.addEventListener('resize', handleResize, false);
 
-    function loadAssembly(objUrl, assembly, transformsByName = {}) {
+    function loadAssembly(objUrl, assembly, furlTransform = null) {
       const theme = document.documentElement.getAttribute("data-theme");
       const loadObj = () => fetch(objUrl).then(response => response.text());
-      const transformsByNamePromise = Promise.resolve(transformsByName);
-      openAfpmCadVisualization.visualize(loadObj, assembly, transformsByNamePromise);
+      const furlTransformPromise = Promise.resolve(furlTransform);
+      openAfpmCadVisualization.visualize(loadObj, assembly, furlTransformPromise);
       const handleMouseMove = (event) => {
         openAfpmCadVisualization.handleMouseMove(event);
       };
       window.addEventListener('mousemove', handleMouseMove, false);
       return () => window.removeEventListener('mousemove', handleMouseMove);
     }
-    let furlTransformsByVariant = null;
+    let furlTransformByVariant = null;
     const state = {
       variant: 't-shape',
       assembly: 'wind-turbine'
     };
     const setState = nextState => Object.assign(state, nextState);
     let cleanUp = null;
-    fetch('furlTransforms.json')
+    fetch('furlTransform.json')
       .then(r => r.json())
-      .then(furlTransforms => {
-        furlTransformsByVariant = furlTransforms;
+      .then(furlTransform => {
+        furlTransformByVariant = furlTransform;
         const objUrl = getObjUrl(state);
         cleanUp = loadAssembly(
           objUrl,
           'WindTurbine',
-          {furl: furlTransformsByVariant[state.variant]}
+          furlTransformByVariant[state.variant]
         );
       });
     function getObjUrl(state) {
@@ -143,13 +143,12 @@
       setState({[name]: value});
       const container = document.getElementById('container');
       container.innerHTML = '';
-      const furlTransforms = furlTransformsByVariant[state.variant];
+      const furlTransform = furlTransformByVariant[state.variant];
       const objUrl = getObjUrl(state);
       const assembly = kebabCaseToPascalCase(state.assembly);
       const isWindTurbine = assembly === 'WindTurbine';
-      const transformsByName = isWindTurbine ? { furl: furlTransforms } : {};
       if (cleanUp) cleanUp();
-      cleanUp = loadAssembly(objUrl, assembly, transformsByName);
+      cleanUp = loadAssembly(objUrl, assembly, isWindTurbine ? furlTransform : null);
     }
     const variantSelect = document.querySelector('select[name="variant"]');
     variantSelect.addEventListener('change', handleSelect);

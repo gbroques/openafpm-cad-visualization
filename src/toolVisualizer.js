@@ -4,7 +4,9 @@ import CameraControls from 'camera-controls';
 import Material from './material';
 import getMaterial from './getMaterial';
 import Part from './windTurbinePart';
-import { forEachWithPrevious, groupBy, partition, reverseArray } from './array';
+import {
+  forEachWithPrevious, groupBy, partition, reverseArray,
+} from './array';
 import { mapValues } from './map';
 import sortByPrimaryAndSecondaryFloatCriteria from './sortByPrimaryAndSecondaryFloatCriteria';
 

@@ -47,7 +47,7 @@ class OpenAfpmCadVisualization {
     overrideDatGuiStyles();
   }
 
-  visualize(loadObj, assembly, transformsByNamePromise = Promise.resolve({})) {
+  visualize(loadObj, assembly, furlTransformPromise = Promise.resolve(null)) {
     this._cleanUpVisualization();
     this._visualizer = assembly === 'WindTurbine'
       ? new WindTurbineVisualizer()
@@ -113,7 +113,7 @@ class OpenAfpmCadVisualization {
     showLoadingScreen();
     const groupWiresTogether = makeGroupWiresTogether(this._width, this._height);
     const groupParts = makeGroupParts(
-      transformsByNamePromise, this._visualizer.getGroupConfigurations,
+      furlTransformPromise, this._visualizer.getGroupConfigurations,
     );
     const objTextPromise = cancelable(loadObj());
     this._previousPromise = objTextPromise
@@ -121,7 +121,7 @@ class OpenAfpmCadVisualization {
       .then(groupWiresTogether)
       .then(groupParts)
       .then(hideLoadingScreen)
-      .then(([parts, transformsByName]) => {
+      .then(([parts, furlTransform]) => {
         parts.forEach((part) => {
           const meshes = findMeshes(part);
           meshes.forEach((mesh) => {
@@ -133,7 +133,7 @@ class OpenAfpmCadVisualization {
         });
 
         const setupContext = {
-          transformsByName,
+          furlTransform,
           camera: this._camera,
           cameraControls: this._cameraControls,
           width: this._width,
@@ -149,6 +149,7 @@ class OpenAfpmCadVisualization {
             gui,
             this._controller,
             handleControllerChange,
+            setupContext,
           );
         }
         this._cleanUpGui = setupVisibilityFolder(

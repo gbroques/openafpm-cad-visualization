@@ -92,7 +92,7 @@ It also appends [`style`](https://developer.mozilla.org/en-US/docs/Web/HTML/Elem
 |`options.width`|`number`|`true`|Width of visualization.|
 |`options.height`|`number`|`true`|Height of visualization.|
 
-#### visualize(loadObj, assembly, transformsByNamePromise)
+#### visualize(loadObj, assembly, furlTransformPromise)
 
 ##### Arguments
 
@@ -100,7 +100,15 @@ It also appends [`style`](https://developer.mozilla.org/en-US/docs/Web/HTML/Elem
 |----|----|--------|-----------|
 |`loadObj`|`function(): Promise.<string>`|`true`|Zero-argument function returning a `Promise` that resolves to [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file contents.|
 |`assembly`|[`string`]|`true`|Assembly of visualization. Must be one of `"WindTurbine"`, `"StatorMold"`, `"RotorMold"`, `"MagnetJig"`, or `"CoilWinder"`.|
-|`transformsByNamePromise`|`Promise.<Object.<string, Array.<Transform>>`|`true` when `type` === `"WindTurbine"`, `false` otherwise.|When `assembly` === `"WindTurbine"`, a `"furl"` property must be present containing a three element array of `Transform` objects needed to furl the tail. See below table for details.|
+|`furlTransformPromise`|`Promise.<FurlTransform>`|`true` when `type` === `"WindTurbine"`, `false` otherwise.|When `assembly` === `"WindTurbine"`, the `Promise` must resolve to a `FurlTransform` object. See below table for details.|
+
+###### FurlTransform
+
+|Name|Type|Required|Description|
+|----|----|--------|-----------|
+|`furlTransform`|`Object`|`true`|An object representing how to furl the tail.|
+|`maximum_angle`|`number`|`true`|Maximum angle (**in degrees**) to furl the tail before high end stop hits the yaw bearing pipe.|
+|`transforms`|`Array.<Transform>`|`true`|Three element array of `Transform` objects needed to furl the tail. See below table for details.|
 
 ###### Transform
 

@@ -1,0 +1,94 @@
+{
+  "t-shape": {
+    "maximum_angle": 113.64,
+    "transforms": [
+      {
+        "name": "parent",
+        "position": [-139.379, -142.5, -133.797],
+        "axis": [-0.217607, 0.690162, 0.690162],
+        "angle": 2.71306
+      },
+      {
+        "name": "tail",
+        "position": [0, 0, 0],
+        "axis": [0.34202, 0, 0.939693],
+        "angle": 0
+      },
+      {
+        "name": "hinge",
+        "position": [71.9706, 0, 85.7095],
+        "axis": [0, 1, 0],
+        "angle": 0.349066
+      }
+    ]
+  },
+  "h-shape": {
+    "maximum_angle": 110.07,
+    "transforms": [
+      {
+        "name": "parent",
+        "position": [-386.755, -322.066, -262.748],
+        "axis": [-0.217607, 0.690162, 0.690162],
+        "angle": 2.71306
+      },
+      {
+        "name": "tail",
+        "position": [0, 0, 0],
+        "axis": [0.258819, 0, 0.965926],
+        "angle": 0
+      },
+      {
+        "name": "hinge",
+        "position": [93.716, 0, 125.783],
+        "axis": [0, 1, 0],
+        "angle": 0.261799
+      }
+    ]
+  },
+  "star-shape": {
+    "maximum_angle": 110.27,
+    "transforms": [
+      {
+        "name": "parent",
+        "position": [-517.415, -378.523, -364.39],
+        "axis": [-0.217607, 0.690162, 0.690162],
+        "angle": 2.71306
+      },
+      {
+        "name": "tail",
+        "position": [0, 0, 0],
+        "axis": [0.258819, 0, 0.965926],
+        "angle": 0
+      },
+      {
+        "name": "hinge",
+        "position": [131.133, 0, 186.477],
+        "axis": [0, 1, 0],
+        "angle": 0.261799
+      }
+    ]
+  },
+  "t-shape-2f": {
+    "maximum_angle": 113.67,
+    "transforms": [
+      {
+        "name": "parent",
+        "position": [-147.657, -143.82, -133.272],
+        "axis": [-0.217607, 0.690162, 0.690162],
+        "angle": 2.71306
+      },
+      {
+        "name": "tail",
+        "position": [0, 0, 0],
+        "axis": [0.34202, 0, 0.939693],
+        "angle": 0
+      },
+      {
+        "name": "hinge",
+        "position": [72.2241, 0, 86.4061],
+        "axis": [0, 1, 0],
+        "angle": 0.349066
+      }
+    ]
+  }
+}

@@ -13,7 +13,7 @@ import Part from './windTurbinePart';
  * We could possibly retrieve this from openafpm-cad-core
  * to avoid the duplication if it changes often.
  *
- * @see https://github.com/gbroques/openafpm-cad-core/blob/master/openafpm_cad_core/create_spreadsheet_document.py#L170-L173
+ * @see https://github.com/gbroques/openafpm-cad-core/blob/bd1d123a5d2e3572b292f448acac67278cd0de3c/openafpm_cad_core/alternator_cells.py#L149-L151
  */
 const ALTERNATOR_TILT_ANGLE = 4 * (Math.PI / 180);
 
@@ -94,9 +94,8 @@ class WindTurbineVisualizer {
    * furling the tail later.
    */
   setup(parts, setupContext) {
-    const { transformsByName } = setupContext;
-    this._furlTransforms = transformsByName.furl;
-
+    const { furlTransform } = setupContext;
+    this._furlTransforms = furlTransform.transforms;
     const tailMatrix = transformsToMatrix4(this._furlTransforms);
     this._tailCenter = new THREE.Vector3()
       .setFromMatrixPosition(tailMatrix);
@@ -112,9 +111,9 @@ class WindTurbineVisualizer {
     return parts;
   }
 
-  getGroupConfigurations({ transformsByName }) {
-    const furlTransforms = transformsByName.furl;
-    const tailMatrix = transformsToMatrix4(furlTransforms);
+  getGroupConfigurations({ furlTransform }) {
+    const { transforms } = furlTransform;
+    const tailMatrix = transformsToMatrix4(transforms);
     const tailMatrixInverse = new THREE.Matrix4()
       .copy(tailMatrix)
       .invert();
@@ -230,8 +229,9 @@ class WindTurbineVisualizer {
     return getMaterial(partName, Material.STEEL);
   }
 
-  setupGui(gui, controller, onControllerChange) {
-    gui.add(controller, 'Furl', 0, 105)
+  setupGui(gui, controller, onControllerChange, setupContext) {
+    const maximumFurlAngle = setupContext.furlTransform.maximum_angle;
+    gui.add(controller, 'Furl', 0, maximumFurlAngle, 0.01)
       .onChange(onControllerChange);
   }
 
@@ -261,9 +261,9 @@ class WindTurbineVisualizer {
         Part.Tail_Boom_Support,
         Part.Tail_Stop_HighEnd,
         Part.Vane_Bracket_Top,
-        Part.Vane_Bracket_Bottom
+        Part.Vane_Bracket_Bottom,
       ],
-      Vane: [Part.Tail_Vane]
+      Vane: [Part.Tail_Vane],
     };
   }
 
