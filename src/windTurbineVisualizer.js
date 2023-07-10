@@ -95,7 +95,7 @@ class WindTurbineVisualizer {
    */
   setup(parts, setupContext) {
     const { furlTransform } = setupContext;
-    this._furlTransforms = furlTransform.transforms;
+    this._furlTransforms = deepCopy(furlTransform.transforms);
     const tailMatrix = transformsToMatrix4(this._furlTransforms);
     this._tailCenter = new THREE.Vector3()
       .setFromMatrixPosition(tailMatrix);
@@ -375,6 +375,10 @@ function createAmbientLight() {
   const color = 0xFFFFFF;
   const intensity = 0.50;
   return new THREE.AmbientLight(color, intensity);
+}
+
+function deepCopy(obj) {
+  return JSON.parse(JSON.stringify(obj));
 }
 
 export default WindTurbineVisualizer;
