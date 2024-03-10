@@ -9,22 +9,24 @@ Module for visualizing [openafpm-cad-core](https://github.com/gbroques/openafpm-
 ![Flow](./flow.png)
 
 ## Prerequisites
-Install [Node.js](https://nodejs.org/en/).
-
-## How to Run
-1. Install dependencies.
+1. Install [Node.js](https://nodejs.org/en/).
+2. Install dependencies.
 
        npm install
 
-2. (**OPTIONAL**) Build bundle if you want to make changes to files in `src/`.
+3. Generate OBJ files from [`openafpm-cad-core`](https://github.com/gbroques/openafpm-cad-core?tab=readme-ov-file#generating-obj-files-for-openafpm-cad-visualization).
+
+## How to Run
+
+1. (**OPTIONAL**) Build bundle if you want to make changes to files in `src/`.
 
        npm run watch
 
-3. Start server.
+2. Start server.
 
        npm run serve
 
-4. Navigate to http://127.0.0.1:8080/ in your web browser of choice. Currently tested in Chrome.
+3. Navigate to http://127.0.0.1:8080/ in your web browser of choice. Currently tested in Chrome.
 
 Additionally, on UNIX-like operating systems, you can run `npm start`; which runs `npm run watch` and `npm run serve` in parallel.
 
