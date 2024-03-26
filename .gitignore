@@ -1,2 +1,3 @@
 node_modules/
 public/openafpm-cad-visualization.js*
+*.obj
