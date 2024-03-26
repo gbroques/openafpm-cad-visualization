@@ -9,6 +9,11 @@ const FASTENER_PATTERNS = [
   'Rods',
 ];
 
+const WOODEN_PARTS = [
+  WindTurbinePart.Blade_Assembly_BackDisk,
+  WindTurbinePart.Tail_Vane
+];
+
 export default function getMaterial(partName, defaultMaterial = Material.STEEL) {
   if (partName.includes('ResinCast')) {
     return Material.RESIN;
@@ -18,7 +23,7 @@ export default function getMaterial(partName, defaultMaterial = Material.STEEL) 
     return Material.COPPER;
   } else if (partName.includes('Magnets')) {
     return Material.MAGNET;
-  } else if (partName === WindTurbinePart.Tail_Vane) {
+  } else if (WOODEN_PARTS.includes(partName)) {
     return Material.WOOD;
   } else if (
     partName === WindTurbinePart.Rotor_Disk_Back

@@ -2,6 +2,7 @@
  * Enumeration of Wind Turbine Part names.
  */
 const WindTurbinePart = {
+  Blade_Assembly_BackDisk: 'Blade_Assembly_BackDisk',
   Stator_Coils: 'Stator_Coils',
   Stator_ResinCast: 'Stator_ResinCast',
   Rotor_Disk_Front: 'Rotor_Disk_Front',
