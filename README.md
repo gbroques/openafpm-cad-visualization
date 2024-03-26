@@ -10,9 +10,13 @@ Module for visualizing [openafpm-cad-core](https://github.com/gbroques/openafpm-
 
 ## Prerequisites
 1. Install [Node.js](https://nodejs.org/en/).
-2. Install dependencies.
+2. Install [Yarn](https://yarnpkg.com/).
 
-       npm install
+       npm install yarn -g
+
+3. Install dependencies.
+
+       yarn install
 
 3. Generate OBJ files from [`openafpm-cad-core`](https://github.com/gbroques/openafpm-cad-core?tab=readme-ov-file#generating-obj-files-for-openafpm-cad-visualization).
 
