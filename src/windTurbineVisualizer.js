@@ -143,6 +143,10 @@ class WindTurbineVisualizer {
       controller, Part.Stator_Coils, statorExlosionFactor,
     );
 
+    const bladeAssemblyFrontTriangleExplosionFactor = 4.5;
+    this._explodeAlongAlternatorTilt(
+      controller, Part.Blade_Assembly_FrontTriangle, bladeAssemblyFrontTriangleExplosionFactor,
+    );
     const bladeAssemblyBackDiskExplosionFactor = 3;
     this._explodeAlongAlternatorTilt(
       controller, Part.Blade_Assembly_BackDisk, bladeAssemblyBackDiskExplosionFactor,
@@ -203,6 +207,7 @@ class WindTurbineVisualizer {
   getTooltipLabel(partName) {
     return {
       [Part.Blade_Assembly_BackDisk]: 'Back Rotor Hub',
+      [Part.Blade_Assembly_FrontTriangle]: 'Front Rotor Hub',
       [Part.Stator_Coils]: 'Coils',
       [Part.Stator_ResinCast]: 'Stator Resin Cast',
       [Part.Rotor_Disk_Front]: 'Rotor Disk',
@@ -242,6 +247,9 @@ class WindTurbineVisualizer {
 
   getPartNamesByVisibilityLabel() {
     return {
+      'Front Rotor Hub': [
+        Part.Blade_Assembly_FrontTriangle
+      ],
       'Back Rotor Hub': [
         Part.Blade_Assembly_BackDisk
       ],

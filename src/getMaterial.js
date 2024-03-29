@@ -11,6 +11,7 @@ const FASTENER_PATTERNS = [
 
 const WOODEN_PARTS = [
   WindTurbinePart.Blade_Assembly_BackDisk,
+  WindTurbinePart.Blade_Assembly_FrontTriangle,
   WindTurbinePart.Tail_Vane
 ];
 

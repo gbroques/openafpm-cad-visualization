@@ -3,6 +3,7 @@
  */
 const WindTurbinePart = {
   Blade_Assembly_BackDisk: 'Blade_Assembly_BackDisk',
+  Blade_Assembly_FrontTriangle: 'Blade_Assembly_FrontTriangle',
   Stator_Coils: 'Stator_Coils',
   Stator_ResinCast: 'Stator_ResinCast',
   Rotor_Disk_Front: 'Rotor_Disk_Front',

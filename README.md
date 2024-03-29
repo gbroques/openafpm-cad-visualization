@@ -75,6 +75,7 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 33. Rotor_Magnets (used by Magnet Jig)
 34. Rods (used by Coil Winder)
 35. Blade_Assembly_BackDisk
+36. Blade_Assembly_FrontTriangle
 
 \* Denotes and "ends with" match is performed.
 
