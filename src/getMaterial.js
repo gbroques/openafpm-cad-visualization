@@ -5,7 +5,7 @@ const FASTENER_PATTERNS = [
   'Bolts',
   'Nut',
   'Screws',
-  'Washers',
+  'Washer',
   'Rods',
 ];
 

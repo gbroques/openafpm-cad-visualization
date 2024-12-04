@@ -199,6 +199,10 @@ class ToolVisualizer {
       // Used by Coil Winder
       Outer_Nut_Back: 'Nuts',
       Outer_Nut_Front: 'Nuts',
+      Outer_Washer_Back: 'Washers',
+      Outer_Washer_Front: 'Washers',
+      InnerBackWashers: 'Washers',
+      InnerFrontWashers: 'Washers',
       Stator_CoilWinder_Cheeks: 'Cheek',
       Stator_CoilWinder_Cheek_Notches: 'Notched Cheek',
       Stator_CoilWinder_Cheek_Spacers: 'Spacer',
