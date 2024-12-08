@@ -17,21 +17,21 @@ const WOODEN_PARTS = [
 
 export default function getMaterial(partName, defaultMaterial = Material.STEEL) {
   if (partName.includes('ResinCast')) {
-    return Material.RESIN;
+    return Material.RESIN();
   } else if (
     partName.startsWith(WindTurbinePart.Stator_Coils)
   ) {
-    return Material.COPPER;
+    return Material.COPPER();
   } else if (partName.includes('Magnets')) {
-    return Material.MAGNET;
+    return Material.MAGNET();
   } else if (WOODEN_PARTS.includes(partName)) {
-    return Material.WOOD;
+    return Material.WOOD();
   } else if (
     partName === WindTurbinePart.Rotor_Disk_Back
     || FASTENER_PATTERNS.some((pattern) => partName.includes(pattern))
   ) {
-    return Material.STEEL;
+    return Material.STEEL();
   } else {
-    return defaultMaterial;
+    return defaultMaterial();
   }
 }
