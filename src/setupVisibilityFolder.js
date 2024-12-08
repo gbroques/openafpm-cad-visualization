@@ -17,7 +17,7 @@ export default function setupVisibilityFolder(
   const visibilityGui = gui.addFolder('Visibility');
   Object.keys(partNamesByVisibilityLabel).forEach((visibilityLabel) => {
     const changeHandler = changeHandlerByVisibilityLabel[visibilityLabel];
-    visibilityGui.add(visibilityController, visibilityLabel).onChange(changeHandler);
+    visibilityGui.add(visibilityController, visibilityLabel, 0, 100).onChange(changeHandler);
   });
   const cleanUp = () => {
     gui.destroy();
@@ -27,7 +27,7 @@ export default function setupVisibilityFolder(
 
 function getVisibilityController(visibilityLabels) {
   return visibilityLabels.reduce((acc, visibilityLabel) => (
-    { ...acc, [visibilityLabel]: true }
+    { ...acc, [visibilityLabel]: 100 }
   ), {});
 }
 
@@ -62,22 +62,35 @@ function createChangeVisibility(
       console.warn(`No part named '${partName}' found in parts`, parts);
       return;
     }
-    part.visible = visbility;
     const partMeshes = findMeshes(part);
     if (!partMeshes) {
       console.warn(`No meshes found for part '${partName}'`);
     }
+    setTransparency(partMeshes, visbility);
     if (visbility) {
       addToVisibleMeshes(visibleMeshes, partMeshes);
     } else {
-      removeFromVisibleMeshes(visibleMeshes, partMeshes);
+      if (part.visibile) {
+        removeFromVisibleMeshes(visibleMeshes, partMeshes);
+      }
     }
+    part.visible = Boolean(visbility);
     onControllerChange();
   };
 }
 
+function setTransparency(partMeshes, transparency) {
+    partMeshes.forEach(mesh => {
+        mesh.material.opacity = transparency / 100;
+    });
+}
+
 function addToVisibleMeshes(visibleMeshes, partMeshes) {
-  visibleMeshes.push(...partMeshes);
+    partMeshes.forEach(mesh => {
+      if (visibleMeshes.findIndex(visibleMesh => visibleMesh === mesh) === -1) {
+        visibleMeshes.push(mesh);
+      }
+    })
 }
 
 function removeFromVisibleMeshes(visibleMeshes, partMeshes) {
