@@ -1,23 +1,33 @@
 import findMeshes from './findMeshes';
 
-export default function setupVisibilityFolder(
+export default function setupTransparencyFolder(
   gui,
-  partNamesByVisibilityLabel,
+  partNamesByTransparencyLabel,
   parts,
   visibleMeshes,
   onControllerChange,
 ) {
-  const visibilityLabels = Object.keys(partNamesByVisibilityLabel);
-  const visibilityController = getVisibilityController(visibilityLabels);
+  const transparencyLabels = Object.keys(partNamesByTransparencyLabel);
+  const transparencyByLabel = getTransparencyByLabel(transparencyLabels);
 
-  const entries = Object.entries(partNamesByVisibilityLabel);
-  const changeHandlerByVisibilityLabel = getChangeHandlerByVisibilityLabel(
+  const entries = Object.entries(partNamesByTransparencyLabel);
+  const changeHandlerByTransparencyLabel = getChangeHandlerByTransparencyLabel(
     entries, parts, visibleMeshes, onControllerChange,
   );
-  const visibilityGui = gui.addFolder('Visibility');
-  Object.keys(partNamesByVisibilityLabel).forEach((visibilityLabel) => {
-    const changeHandler = changeHandlerByVisibilityLabel[visibilityLabel];
-    visibilityGui.add(visibilityController, visibilityLabel).onChange(changeHandler);
+  const transparencyGui = gui.addFolder('Transparency');
+  Object.keys(partNamesByTransparencyLabel).forEach((label) => {
+    const changeHandler = changeHandlerByTransparencyLabel[label];
+    const min = 0;
+    const max = 100;
+    const step = 10;
+    const controller = transparencyGui.add(transparencyByLabel, label, min, max, step);
+    controller.onChange(changeHandler);
+    controller.$name.style = 'cursor: pointer';
+    controller.$name.addEventListener('click', () => {
+      transparencyByLabel[label] = transparencyByLabel[label] ? min : max;
+      changeHandler(transparencyByLabel[label]);
+      controller.updateDisplay();
+    });
   });
   const cleanUp = () => {
     gui.destroy();
@@ -25,34 +35,34 @@ export default function setupVisibilityFolder(
   return cleanUp;
 }
 
-function getVisibilityController(visibilityLabels) {
-  return visibilityLabels.reduce((acc, visibilityLabel) => (
-    { ...acc, [visibilityLabel]: true }
+function getTransparencyByLabel(labels) {
+  return labels.reduce((acc, label) => (
+    { ...acc, [label]: 100 }
   ), {});
 }
 
-function getChangeHandlerByVisibilityLabel(
+function getChangeHandlerByTransparencyLabel(
   entries, parts, visibleMeshes, onControllerChange,
 ) {
   return entries.reduce((accumulator, entry) => {
-    const [visibilityLabel, partNames] = entry;
+    const [label, partNames] = entry;
     return {
       ...accumulator,
-      [visibilityLabel]: (visibility) => {
+      [label]: (transparency) => {
         partNames.forEach((partName) => {
-          const changeVisibility = createChangeVisibility(
-            parts, visibility, visibleMeshes, onControllerChange,
+          const changeTransparency = createChangeTransparency(
+            parts, transparency, visibleMeshes, onControllerChange,
           );
-          changeVisibility(partName);
+          changeTransparency(partName);
         });
       },
     };
   }, {});
 }
 
-function createChangeVisibility(
+function createChangeTransparency(
   parts,
-  visbility,
+  transparency,
   visibleMeshes,
   onControllerChange,
 ) {
@@ -62,22 +72,35 @@ function createChangeVisibility(
       console.warn(`No part named '${partName}' found in parts`, parts);
       return;
     }
-    part.visible = visbility;
     const partMeshes = findMeshes(part);
     if (!partMeshes) {
       console.warn(`No meshes found for part '${partName}'`);
     }
-    if (visbility) {
+    setTransparency(partMeshes, transparency);
+    if (transparency) {
       addToVisibleMeshes(visibleMeshes, partMeshes);
     } else {
-      removeFromVisibleMeshes(visibleMeshes, partMeshes);
+      if (part.visibile) {
+        removeFromVisibleMeshes(visibleMeshes, partMeshes);
+      }
     }
+    part.visible = Boolean(transparency);
     onControllerChange();
   };
 }
 
+function setTransparency(partMeshes, transparency) {
+    partMeshes.forEach(mesh => {
+        mesh.material.opacity = transparency / 100;
+    });
+}
+
 function addToVisibleMeshes(visibleMeshes, partMeshes) {
-  visibleMeshes.push(...partMeshes);
+    partMeshes.forEach(mesh => {
+      if (!visibleMeshes.includes(mesh)) {
+        visibleMeshes.push(mesh);
+      }
+    })
 }
 
 function removeFromVisibleMeshes(visibleMeshes, partMeshes) {

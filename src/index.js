@@ -19,7 +19,7 @@ import WindTurbineVisualizer from './windTurbineVisualizer';
 import ToolVisualizer from './toolVisualizer';
 import makeGroupParts from './makeGroupParts';
 import findMeshes from './findMeshes';
-import setupVisibilityFolder from './setupVisibilityFolder';
+import setupTransparencyFolder from './setupTransparencyFolder';
 import cssModuleInjector from './cssModuleInjector';
 import theme from './theme';
 
@@ -125,7 +125,7 @@ class OpenAfpmCadVisualization {
           const meshes = findMeshes(part);
           meshes.forEach((mesh) => {
             this._visibleMeshes.push(mesh);
-            const material = this._visualizer.getMaterial(mesh.parent.name);
+            const material = this._visualizer.createMaterial(mesh.parent.name);
             mesh.material = material;
           });
           this._scene.add(part);
@@ -152,9 +152,9 @@ class OpenAfpmCadVisualization {
             setupContext,
           );
         }
-        this._cleanUpGui = setupVisibilityFolder(
+        this._cleanUpGui = setupTransparencyFolder(
           gui,
-          this._visualizer.getPartNamesByVisibilityLabel(sortedParts),
+          this._visualizer.getPartNamesByTransparencyLabel(sortedParts),
           sortedParts,
           this._visibleMeshes,
           handleControllerChange,

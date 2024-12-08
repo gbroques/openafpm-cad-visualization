@@ -16,9 +16,9 @@
  * @property {?function} getGroupConfigurations
  * @property {?function} handleRender
  * @property {function} explode
- * @property {function} getMaterial
+ * @property {function} createMaterial
  * @property {?function} setupGui
- * @property {function} getPartNamesByVisibilityLabel
+ * @property {function} getPartNamesByTransparencyLabel
  *
  * The two implementing subclasses are
  * (1) WindTurbineVisualizer and (2) ToolVisualizer.

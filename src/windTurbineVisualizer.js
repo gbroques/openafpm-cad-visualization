@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import CameraControls from 'camera-controls';
 
-import Material from './material';
-import getMaterial from './getMaterial';
+import MaterialFactory from './materialFactory';
+import createMaterial from './createMaterial';
 import transformsToMatrix4 from './transformsToMatrix4';
 import findMeshes from './findMeshes';
 import Part from './windTurbinePart';
@@ -235,8 +235,8 @@ class WindTurbineVisualizer {
     }[partName];
   }
 
-  getMaterial(partName) {
-    return getMaterial(partName, Material.STEEL);
+  createMaterial(partName) {
+    return createMaterial(partName, MaterialFactory.createSteel);
   }
 
   setupGui(gui, controller, onControllerChange, setupContext) {
@@ -245,7 +245,7 @@ class WindTurbineVisualizer {
       .onChange(onControllerChange);
   }
 
-  getPartNamesByVisibilityLabel() {
+  getPartNamesByTransparencyLabel() {
     return {
       'Front Rotor Hub': [
         Part.Blade_Assembly_FrontTriangle

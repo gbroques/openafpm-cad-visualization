@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import CameraControls from 'camera-controls';
 
-import Material from './material';
-import getMaterial from './getMaterial';
+import MaterialFactory from './materialFactory';
+import createMaterial from './createMaterial';
 import Part from './windTurbinePart';
 import {
   forEachWithPrevious, groupBy, partition, reverseArray,
@@ -132,9 +132,9 @@ class ToolVisualizer {
     const azimuthAngle = Math.PI / 4;
     const { polarAngle } = cameraControls;
     cameraControls.rotateTo(azimuthAngle, polarAngle, enableTransition);
-    // Return parts for ordering in Visibility menu.
+    // Return parts for ordering in Transparency menu.
     const reversedParts = reverseParts(this._parts);
-    // Ungroup "array parts" by position to later be grouped by name for visibility toggling.
+    // Ungroup "array parts" by position to later be grouped by name for transparency setting.
     return ungroupParts(reversedParts);
   }
 
@@ -219,15 +219,15 @@ class ToolVisualizer {
     }
   }
 
-  getMaterial(partName) {
-    return getMaterial(partName, Material.WOOD);
+  createMaterial(partName) {
+    return createMaterial(partName, MaterialFactory.createWood);
   }
 
   // Most of the complexity here is for the Coil Winder visualization.
-  getPartNamesByVisibilityLabel(parts) {
-    // Group "array parts" by name for visibility toggling.
+  getPartNamesByTransparencyLabel(parts) {
+    // Group "array parts" by name for transparency setting.
     // Outer_Nut_Back and Outer_Nut_Front map to same "Nuts" tooltip label.
-    const partsByVisbilityLabel = groupBy(
+    const partsByTransparencyLabel = groupBy(
       parts,
       (part) => (
         endsWithNumber(part)
@@ -236,7 +236,7 @@ class ToolVisualizer {
       ),
     );
     // Use Object.fromEntries to convert Map to Object
-    return Object.fromEntries(mapValues(partsByVisbilityLabel, partsToNames));
+    return Object.fromEntries(mapValues(partsByTransparencyLabel, partsToNames));
   }
 }
 
