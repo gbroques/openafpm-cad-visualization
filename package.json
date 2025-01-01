@@ -16,7 +16,7 @@
   "author": "G Roques",
   "license": "LGPL-2.1-or-later",
   "dependencies": {
-    "camera-controls": "^2.9.0",
+    "camera-controls": "^1.38.2",
     "cancelable-promise": "^4.3.1",
     "three": "^0.172.0"
   },
