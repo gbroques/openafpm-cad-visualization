@@ -170,7 +170,7 @@ camera-controls@^2.9.0:
   resolved "https://registry.yarnpkg.com/camera-controls/-/camera-controls-2.9.0.tgz#c3f67e702c2b68ae87418ca047c867e6494be2e8"
   integrity sha512-TpCujnP0vqPppTXXJRYpvIy0xq9Tro6jQf2iYUxlDpPCNxkvE/XGaTuwIxnhINOkVP/ob2CRYXtY3iVYXeMEzA==
 
-cancelable-promise@^4.3.0:
+cancelable-promise@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/cancelable-promise/-/cancelable-promise-4.3.1.tgz#957b62382435e74dfb2a038517f53205e0c631c6"
   integrity sha512-A/8PwLk/T7IJDfUdQ68NR24QHa8rIlnN/stiJEBo6dmVUkD4K14LswG0w3VwdeK/o7qOwRUR1k2MhK5Rpy2m7A==
