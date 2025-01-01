@@ -9,8 +9,8 @@
     "prepare": "npm run build",
     "serve": "npx http-server public",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "npx esbuild src/index.js --define:DEBUG=true --bundle --outfile=public/openafpm-cad-visualization.js --format=esm --watch --minify --sourcemap --target=chrome88",
-    "build": "npx esbuild src/index.js --define:DEBUG=false --bundle --outfile=public/openafpm-cad-visualization.js --format=esm --minify --sourcemap --target=chrome88",
+    "watch": "npx esbuild src/index.js --define:DEBUG=true --bundle --outfile=public/openafpm-cad-visualization.js --format=esm --watch --minify --sourcemap --target=chrome131",
+    "build": "npx esbuild src/index.js --define:DEBUG=false --bundle --outfile=public/openafpm-cad-visualization.js --format=esm --minify --sourcemap --target=chrome131",
     "start": "npm run serve & npm run watch"
   },
   "author": "G Roques",
