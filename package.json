@@ -21,7 +21,7 @@
     "three": "^0.172.0"
   },
   "devDependencies": {
-    "esbuild": "^0.8.54",
+    "esbuild": "~0.24.2",
     "eslint": "^7.20.0",
     "eslint-config-airbnb": "^18.2.1",
     "http-server": "^0.12.3"
