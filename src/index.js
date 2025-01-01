@@ -5,7 +5,7 @@
 //       Should this be named development?
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js';
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import CameraControls from 'camera-controls';
 import { cancelable } from 'cancelable-promise';
 
@@ -44,7 +44,6 @@ class OpenAfpmCadVisualization {
     const classes = cssModuleInjector.getClasses('root');
     rootDomElement.classList.add(classes.root);
     cssModuleInjector.inject();
-    overrideDatGuiStyles();
   }
 
   visualize(loadObj, assembly, furlTransformPromise = Promise.resolve(null)) {
@@ -143,7 +142,8 @@ class OpenAfpmCadVisualization {
         const sortedParts = this._visualizer.setup(parts, setupContext);
         const updateCameraControls = false;
         const handleControllerChange = debounce(() => this._render(updateCameraControls), 5);
-        const gui = initializeGui(this._cameraControls, this._controller, handleControllerChange);
+        this._guiContainer = window.document.createElement('div');
+        const gui = initializeGui(this._guiContainer, this._cameraControls, this._controller, handleControllerChange);
         if (this._visualizer.setupGui) {
           this._visualizer.setupGui(
             gui,
@@ -163,8 +163,7 @@ class OpenAfpmCadVisualization {
         // Must append container to root DOM element before this._mount()
         const container = createAppContainer(OPACITY_DURATION);
         this._rootDomElement.appendChild(container);
-        this._guiContainer = createGuiContainer(gui.domElement);
-        this._setGuiContainerTop();
+        this._setGuiContainerStyle();
         this._mount(container);
         container.style.opacity = '1';
         this._cameraControls.update();
@@ -196,7 +195,7 @@ class OpenAfpmCadVisualization {
     if (this._cameraControls) {
       this._cameraControls.setViewport(0, 0, width, height);
     }
-    this._setGuiContainerTop();
+    this._setGuiContainerStyle();
     this._renderer.setSize(width, height);
     this._render();
   }
@@ -238,10 +237,15 @@ class OpenAfpmCadVisualization {
     rootDomElement.appendChild(this._viewCube.domElement);
   }
 
-  _setGuiContainerTop() {
+  _setGuiContainerStyle() {
     if (this._guiContainer) {
+      // Based on lil-gui autoPlace styles:
+      // https://github.com/georgealways/lil-gui/blob/v0.20.0/style/base.scss#L109-L115
+      this._guiContainer.style.position = 'fixed';
       const { top } = this._rootDomElement.getBoundingClientRect();
       this._guiContainer.style.top = `${top}px`;
+      this._guiContainer.style.right = '15px';
+      this._guiContainer.style.zIndex = '1001';
     }
   }
 
@@ -289,21 +293,11 @@ class OpenAfpmCadVisualization {
   }
 }
 
-function createGuiContainer(guiDomElement) {
-  const autoPlaceContainer = window.document.createElement('div');
-  const datGuiCssNamespace = guiDomElement.classList[0];
-  autoPlaceContainer.classList.add(datGuiCssNamespace);
-  autoPlaceContainer.classList.add(GUI.CLASS_AUTO_PLACE_CONTAINER);
-  guiDomElement.classList.add(GUI.CLASS_AUTO_PLACE);
-  autoPlaceContainer.appendChild(guiDomElement);
-  return autoPlaceContainer;
-}
-
 /**
  * Initializes GUI with 'Reset View' and 'Explode' functions.
  */
-function initializeGui(cameraControls, controller, onControllerChange) {
-  const gui = new GUI({ autoPlace: false });
+function initializeGui(container, cameraControls, controller, onControllerChange) {
+  const gui = new GUI({ container });
   gui.closed = false;
 
   const initialCameraPosition = new THREE.Vector3();
@@ -372,35 +366,6 @@ function getSortOverrideArray(assembly) {
   return sortOverrideArrayByAssembly[assembly]
     ? sortOverrideArrayByAssembly[assembly]
     : [];
-}
-
-function overrideDatGuiStyles() {
-  const style = window.document.createElement('style');
-  style.type = 'text/css';
-  // https://github.com/dataarts/dat.gui/blob/v0.7.9/src/dat/gui/_structure.scss
-  // https://github.com/dataarts/dat.gui/issues/198
-  style.innerHTML = `
-    .dg li:not(.folder) {
-      height: initial;
-      min-height: 27px;
-    }
-    .dg .cr {
-      height: initial;
-      min-height: 27px;
-    }
-    .dg .closed li:not(.title), .dg .closed ul li, .dg .closed ul li > * {
-      height: 0;
-      min-height: 0;
-    }
-  `;
-  style.dataset.namespace = 'openafpm-dat-gui-overrides';
-  const head = window.document.getElementsByTagName('head')[0];
-  try {
-    head.appendChild(style);
-  } catch (e) {
-    // Unable to inject CSS, probably because of a Content Security Policy.
-    console.error(e);
-  }
 }
 
 export default OpenAfpmCadVisualization;
