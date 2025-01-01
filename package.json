@@ -18,7 +18,7 @@
   "dependencies": {
     "camera-controls": "^1.33.1",
     "cancelable-promise": "^4.3.0",
-    "three": "^0.155.0"
+    "three": "^0.165.0"
   },
   "devDependencies": {
     "esbuild": "^0.8.54",
