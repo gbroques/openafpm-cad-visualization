@@ -73,7 +73,7 @@ class WindTurbineVisualizer {
   }
 
   getInitialController() {
-    return { Explode: 0, Furl: 0 };
+    return { Explode: 0, 'Furl (in deg)': 0 };
   }
 
   getViewCubeFaces() {
@@ -241,7 +241,7 @@ class WindTurbineVisualizer {
 
   setupGui(gui, controller, onControllerChange, setupContext) {
     const maximumFurlAngle = setupContext.furlTransform.maximum_angle;
-    gui.add(controller, 'Furl', 0, maximumFurlAngle, 0.01)
+    gui.add(controller, 'Furl (in deg)', 0, maximumFurlAngle, 0.01)
       .onChange(onControllerChange);
   }
 
@@ -284,7 +284,7 @@ class WindTurbineVisualizer {
   }
 
   _furl(controller, tailHingeExplosionFactor) {
-    const furlAngle = controller.Furl * (Math.PI / 180);
+    const furlAngle = controller['Furl (in deg)'] * (Math.PI / 180);
     // the 2nd furl transform is the hinge
     this._furlTransforms[1].angle = furlAngle;
     // TODO: transformsToMatrix4 creates many Matrix4 instances per render.
