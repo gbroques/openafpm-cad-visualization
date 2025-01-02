@@ -17,7 +17,7 @@ export default function setupVisibilityFolder(
   const visibilityGui = gui.addFolder('Visibility');
   Object.keys(partNamesByVisibilityLabel).forEach((visibilityLabel) => {
     const changeHandler = changeHandlerByVisibilityLabel[visibilityLabel];
-    visibilityGui.add(visibilityController, visibilityLabel, 0, 100).onChange(changeHandler);
+    visibilityGui.add(visibilityController, visibilityLabel, 0, 100, 1).onChange(changeHandler);
   });
   const cleanUp = () => {
     gui.destroy();
