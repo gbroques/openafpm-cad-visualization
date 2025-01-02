@@ -325,7 +325,7 @@ function initializeGui(container, cameraControls, controller, onControllerChange
     },
   };
   gui.add(obj, 'Reset View');
-  gui.add(controller, 'Explode', 0, 100)
+  gui.add(controller, 'Explode', 0, 100, 1)
     .onChange(onControllerChange);
   return gui;
 }
