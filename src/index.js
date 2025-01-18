@@ -124,6 +124,11 @@ class OpenAfpmCadVisualization {
         parts.forEach((part) => {
           const meshes = findMeshes(part);
           meshes.forEach((mesh) => {
+            // fix issue where magnets and coils disappear with only their wire remaining
+            // see: https://stackoverflow.com/a/17648548
+            if (mesh.parent.name.toLowerCase().includes('resin')) {
+              mesh.renderOrder = 0.1;
+            }
             this._visibleMeshes.push(mesh);
             const material = this._visualizer.createMaterial(mesh.parent.name);
             mesh.material = material;
