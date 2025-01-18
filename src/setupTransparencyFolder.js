@@ -7,8 +7,7 @@ export default function setupTransparencyFolder(
   visibleMeshes,
   onControllerChange,
 ) {
-  const transparencyLabels = Object.keys(partNamesByTransparencyLabel);
-  const transparencyByLabel = getTransparencyByLabel(transparencyLabels);
+  const transparencyByLabel = getTransparencyByLabel(partNamesByTransparencyLabel, parts);
 
   const entries = Object.entries(partNamesByTransparencyLabel);
   const changeHandlerByTransparencyLabel = getChangeHandlerByTransparencyLabel(
@@ -18,7 +17,7 @@ export default function setupTransparencyFolder(
   Object.keys(partNamesByTransparencyLabel).forEach((label) => {
     const changeHandler = changeHandlerByTransparencyLabel[label];
     const min = 0;
-    const max = 100;
+    const max = transparencyByLabel[label];
     const step = 10;
     const controller = transparencyGui.add(transparencyByLabel, label, min, max, step);
     controller.onChange(changeHandler);
@@ -35,10 +34,22 @@ export default function setupTransparencyFolder(
   return cleanUp;
 }
 
-function getTransparencyByLabel(labels) {
-  return labels.reduce((acc, label) => (
-    { ...acc, [label]: 100 }
-  ), {});
+function getTransparencyByLabel(partNamesByTransparencyLabel, parts) {
+  return Object.entries(partNamesByTransparencyLabel).reduce((acc, entry) => {
+    const [label, partNames] = entry;
+    // Assume all parts grouped by label have the same transparency,
+    // and only look at the material for the first part and mesh.
+    // This is to get the default max transparency of 90 for resin.
+    const firstPartName = partNames[0];
+    const part = findPart(parts, firstPartName);
+    if (part === undefined) {
+      console.warn(`No part named '${firstPartName}' found in parts`, parts);
+      return;
+    }
+    const partMeshes = findMeshes(part);
+    const firstMesh = partMeshes[0];
+    return { ...acc, [label]: firstMesh.material.opacity * 100 };
+  }, {});
 }
 
 function getChangeHandlerByTransparencyLabel(
