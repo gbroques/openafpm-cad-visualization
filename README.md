@@ -42,9 +42,9 @@ In the [Wavefront .obj format](https://en.wikipedia.org/wiki/Wavefront_.obj_file
 
 1. Stator_Coils
 2. Stator_ResinCast
-3. Rotor_Disk_Front
-4. Rotor_ResinCast_Front
-5. Rotor_Magnets_Front
+3. Rotor_Disk_Front (*Optional*)
+4. Rotor_ResinCast_Front (*Optional*)
+5. Rotor_Magnets_Front (*Optional*)
 6. Rotor_Disk_Back
 7. Rotor_ResinCast_Back
 8. Rotor_Magnets_Back

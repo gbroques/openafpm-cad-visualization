@@ -38,12 +38,14 @@ function getTransparencyByLabel(partNamesByTransparencyLabel, parts) {
   return Object.entries(partNamesByTransparencyLabel).reduce((acc, entry) => {
     const [label, partNames] = entry;
     // Assume all parts grouped by label have the same transparency,
-    // and only look at the material for the first part and mesh.
+    // and only look at the material for the last part and mesh.
     // This is to get the default max transparency of 90 for resin.
-    const firstPartName = partNames[0];
-    const part = findPart(parts, firstPartName);
+    // Use the last instead of first because for single rotor topology,
+    // there is no front rotor which is the first label listed in partNames.
+    const lastPartName = partNames[partNames.length - 1];
+    const part = findPart(parts, lastPartName);
     if (part === undefined) {
-      console.warn(`No part named '${firstPartName}' found in parts`, parts);
+      console.warn(`No part named '${lastPartName}' found in parts`, parts);
       return;
     }
     const partMeshes = findMeshes(part);
