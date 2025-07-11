@@ -1,10 +1,16 @@
 # OpenAFPM CAD Visualization
 
-Module for visualizing [openafpm-cad-core](https://github.com/gbroques/openafpm-cad-core) 3D wind turbine model created in [FreeCAD](https://freecadweb.org/https://freecadweb.org/) via a [web browser](https://en.wikipedia.org/wiki/Web_browser).
+Module for visualizing [openafpm-cad-core](https://github.com/gbroques/openafpm-cad-core)'s 3D wind turbine model in a [web browser](https://en.wikipedia.org/wiki/Web_browser).
 
-1. Create the 3D model in [FreeCAD](https://freecadweb.org/https://freecadweb.org/).
-2. Export the 3D model to [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) (`.obj`) format.
-3. Load the 3D model (`.obj` file) with [three.js](https://threejs.org/).
+The model housed in `openafpm-cad-core` is made with the open-source CAD program, [FreeCAD](https://freecad.org/).
+
+The following is a high-level explanation for how `openafpm-cad-core` and `openafpm-cad-visualization` fit together:
+
+1. `openafpm-cad-core`
+    1. Create the 3D model in [FreeCAD](https://freecadweb.org/https://freecadweb.org/).
+    2. Export the 3D model to [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) (`.obj`) format.
+2. `openafpm-cad-visualization`
+    1. Load the 3D model (`.obj` file) with [three.js](https://threejs.org/) for visualization in a web browser.
 
 ![Flow](./flow.png)
 
