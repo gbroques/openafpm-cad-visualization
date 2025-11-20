@@ -51,11 +51,17 @@ function createErrorScreen(rootDomElement) {
   container.appendChild(detail);
 
   return {
-    showErrorScreen: (errorMessage) => {
+    show: (errorMessage) => {
       detail.textContent = errorMessage;
-      rootDomElement.appendChild(container);
+      if (!rootDomElement.contains(container)) {
+        rootDomElement.appendChild(container);
+      }
+      container.style.opacity = '1';
     },
-    hideErrorScreen: (...args) => {
+    hide: () => {
+      if (!rootDomElement.contains(container)) {
+        return Promise.resolve();
+      }
       container.style.opacity = 0;
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -64,7 +70,7 @@ function createErrorScreen(rootDomElement) {
           if (rootDomElement.contains(container)) {
             rootDomElement.removeChild(container);
           }
-          resolve(...args);
+          resolve();
         }, OPACITY_DURATION);
       });
     },

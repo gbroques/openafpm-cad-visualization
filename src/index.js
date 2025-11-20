@@ -44,9 +44,83 @@ class OpenAfpmCadVisualization {
     const classes = cssModuleInjector.getClasses('root');
     rootDomElement.classList.add(classes.root);
     cssModuleInjector.inject();
+
+    // Initialize loading and error screens
+    const { show: showLoading, hide: hideLoading, updateProgress } = createLoadingScreen(rootDomElement);
+    this._showLoadingScreen = showLoading;
+    this._hideLoadingScreen = hideLoading;
+    this._updateProgress = updateProgress;
+
+    const { show: showError, hide: hideError } = createErrorScreen(rootDomElement);
+    this._showErrorScreen = showError;
+    this._hideErrorScreen = hideError;
   }
 
   visualize(loadObj, assembly, furlTransformPromise = Promise.resolve(null)) {
+    this._setupScene(assembly);
+    this._showLoadingScreen();
+    const objTextPromise = cancelable(loadObj());
+    this._previousPromise = cancelable(
+      Promise.all([objTextPromise, furlTransformPromise])
+        .then(([objText, furlTransform]) => {
+          this._processObjAndRender(objText, furlTransform, assembly);
+        })
+        .catch((error) => {
+          console.error(error);
+          this.showError(error.message);
+        })
+    );
+  }
+
+  render(objText, assembly, furlTransform) {
+    try {
+      this._setupScene(assembly);
+      this._showLoadingScreen();
+      this._processObjAndRender(objText, furlTransform, assembly);
+    } catch (error) {
+      console.error(error);
+      this.showError(error.message);
+    }
+  }
+
+  setProgress(message, percent) {
+    this._showLoadingScreen();
+    this._updateProgress(message, percent);
+  }
+
+  showError(message) {
+    this._hideLoadingScreen()
+      .then(() => this._showErrorScreen(message));
+  }
+
+  resize(width, height) {
+    this._width = width;
+    this._height = height;
+    if (this._camera) {
+      const aspectRatio = width / height;
+      if (this._camera.isOrthographicCamera) {
+        const { viewSize } = this._camera;
+        this._camera.left = -(aspectRatio * viewSize) / 2;
+        this._camera.right = (aspectRatio * viewSize) / 2;
+      } else {
+        this._camera.aspect = aspectRatio;
+      }
+      this._camera.updateProjectionMatrix();
+    }
+    if (this._cameraControls) {
+      this._cameraControls.setViewport(0, 0, width, height);
+    }
+    this._setGuiContainerStyle();
+    this._renderer.setSize(width, height);
+    this._render();
+  }
+
+  cleanUp() {
+    this._cleanUpVisualization();
+    this._renderer.dispose();
+  }
+
+  _setupScene(assembly) {
     this._cleanUpVisualization();
     this._visualizer = assembly === 'WindTurbine'
       ? new WindTurbineVisualizer()
@@ -106,102 +180,74 @@ class OpenAfpmCadVisualization {
       axesHelper.name = 'Axes';
       this._scene.add(axesHelper);
     }
-    const { showLoadingScreen, hideLoadingScreen } = createLoadingScreen(
-      this._rootDomElement,
-    );
-    showLoadingScreen();
-    const groupWiresTogether = makeGroupWiresTogether(this._width, this._height);
-    const groupParts = makeGroupParts(
-      furlTransformPromise, this._visualizer.getGroupConfigurations,
-    );
-    const objTextPromise = cancelable(loadObj());
-    this._previousPromise = objTextPromise
-      .then(parseObjText)
-      .then(groupWiresTogether)
-      .then(groupParts)
-      .then(hideLoadingScreen)
-      .then(([parts, furlTransform]) => {
-        parts.forEach((part) => {
-          const meshes = findMeshes(part);
-          meshes.forEach((mesh) => {
-            // fix issue where magnets and coils disappear with only their wire remaining
-            // see: https://stackoverflow.com/a/17648548
-            if (mesh.parent.name.toLowerCase().includes('resin')) {
-              mesh.renderOrder = 0.1;
-            }
-            this._visibleMeshes.push(mesh);
-            const material = this._visualizer.createMaterial(mesh.parent.name);
-            mesh.material = material;
-          });
-          this._scene.add(part);
-        });
-
-        const setupContext = {
-          furlTransform,
-          camera: this._camera,
-          cameraControls: this._cameraControls,
-          width: this._width,
-          height: this._height,
-          sortOverrideArray: getSortOverrideArray(assembly),
-        };
-        const sortedParts = this._visualizer.setup(parts, setupContext);
-        const updateCameraControls = false;
-        const handleControllerChange = debounce(() => this._render(updateCameraControls), 5);
-        this._guiContainer = window.document.createElement('div');
-        const gui = initializeGui(this._guiContainer, this._cameraControls, this._controller, handleControllerChange);
-        if (this._visualizer.setupGui) {
-          this._visualizer.setupGui(
-            gui,
-            this._controller,
-            handleControllerChange,
-            setupContext,
-          );
-        }
-        this._cleanUpGui = setupTransparencyFolder(
-          gui,
-          this._visualizer.getPartNamesByTransparencyLabel(sortedParts),
-          sortedParts,
-          this._visibleMeshes,
-          handleControllerChange,
-        );
-
-        // Must append container to root DOM element before this._mount()
-        const container = createAppContainer(OPACITY_DURATION);
-        this._rootDomElement.appendChild(container);
-        this._setGuiContainerStyle();
-        this._mount(container);
-        container.style.opacity = '1';
-        this._cameraControls.update();
-        this._isModelLoaded = true;
-        this._render();
-      })
-      .catch((error) => {
-        console.error(error);
-        const { showErrorScreen } = createErrorScreen(this._rootDomElement);
-        hideLoadingScreen()
-          .then(() => showErrorScreen(error.message));
-      });
   }
 
-  resize(width, height) {
-    this._width = width;
-    this._height = height;
-    if (this._camera) {
-      const aspectRatio = width / height;
-      if (this._camera.isOrthographicCamera) {
-        const { viewSize } = this._camera;
-        this._camera.left = -(aspectRatio * viewSize) / 2;
-        this._camera.right = (aspectRatio * viewSize) / 2;
-      } else {
-        this._camera.aspect = aspectRatio;
-      }
-      this._camera.updateProjectionMatrix();
+  _processObjAndRender(objText, furlTransform, assembly) {
+    const obj = parseObjText(objText);
+    const groupWiresTogether = makeGroupWiresTogether(this._width, this._height);
+    const groupedObj = groupWiresTogether(obj);
+    const groupParts = makeGroupParts(
+      furlTransform, this._visualizer.getGroupConfigurations,
+    );
+    const [parts] = groupParts(groupedObj);
+    this._renderToScene(parts, furlTransform, assembly);
+    this._hideLoadingScreen();
+  }
+
+  _renderToScene(parts, furlTransform, assembly) {
+    parts.forEach((part) => {
+      const meshes = findMeshes(part);
+      meshes.forEach((mesh) => {
+        // fix issue where magnets and coils disappear with only their wire remaining
+        // see: https://stackoverflow.com/a/17648548
+        if (mesh.parent.name.toLowerCase().includes('resin')) {
+          mesh.renderOrder = 0.1;
+        }
+        this._visibleMeshes.push(mesh);
+        const material = this._visualizer.createMaterial(mesh.parent.name);
+        mesh.material = material;
+      });
+      this._scene.add(part);
+    });
+
+    const setupContext = {
+      furlTransform,
+      camera: this._camera,
+      cameraControls: this._cameraControls,
+      width: this._width,
+      height: this._height,
+      sortOverrideArray: getSortOverrideArray(assembly),
+    };
+    const sortedParts = this._visualizer.setup(parts, setupContext);
+    const updateCameraControls = false;
+    const handleControllerChange = debounce(() => this._render(updateCameraControls), 5);
+    this._guiContainer = window.document.createElement('div');
+    const gui = initializeGui(this._guiContainer, this._cameraControls, this._controller, handleControllerChange);
+    if (this._visualizer.setupGui) {
+      this._visualizer.setupGui(
+        gui,
+        this._controller,
+        handleControllerChange,
+        setupContext,
+      );
     }
-    if (this._cameraControls) {
-      this._cameraControls.setViewport(0, 0, width, height);
-    }
+    this._cleanUpGui = setupTransparencyFolder(
+      gui,
+      this._visualizer.getPartNamesByTransparencyLabel(sortedParts),
+      sortedParts,
+      this._visibleMeshes,
+      handleControllerChange,
+    );
+
+    // Must append container to root DOM element before this._mount()
+    const container = createAppContainer(OPACITY_DURATION);
+    this._appContainer = container;
+    this._rootDomElement.appendChild(container);
     this._setGuiContainerStyle();
-    this._renderer.setSize(width, height);
+    this._mount(container);
+    container.style.opacity = '1';
+    this._cameraControls.update();
+    this._isModelLoaded = true;
     this._render();
   }
 
@@ -271,11 +317,12 @@ class OpenAfpmCadVisualization {
       });
     }
     if (this._cameraControls) this._cameraControls.dispose();
-  }
 
-  cleanUp() {
-    this._cleanUpVisualization();
-    this._renderer.dispose();
+    // Only remove the app container, not loading/error screens
+    if (this._appContainer && this._rootDomElement.contains(this._appContainer)) {
+      this._rootDomElement.removeChild(this._appContainer);
+      this._appContainer = null;
+    }
   }
 
   _render(updateCameraControls = true) {

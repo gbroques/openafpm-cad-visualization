@@ -15,12 +15,16 @@ const styles = {
     transition: `opacity ${OPACITY_DURATION}ms ease-in-out`,
   },
   text: {
-    'font-weight': 'bold',
     margin: '0',
     'margin-top': '16px',
     color: 'var(--openafpm-foreground-color)',
     'font-size': '0.875rem',
     'line-height': '1.5',
+  },
+  progress: {
+    'margin-top': '8px',
+    width: '200px',
+    height: '8px',
   },
   svg: {
     fill: 'var(--openafpm-foreground-color)',
@@ -43,11 +47,24 @@ function createLoadingScreen(rootDomElement) {
   p.textContent = 'LOADING';
   container.appendChild(p);
 
+  const progressBar = window.document.createElement('progress');
+  progressBar.classList.add(classes.progress);
+  progressBar.max = 100;
+  progressBar.value = 0;
+  progressBar.style.display = 'none'; // Hidden by default
+  container.appendChild(progressBar);
+
   return {
-    showLoadingScreen: () => {
-      rootDomElement.appendChild(container);
+    show: () => {
+      if (!rootDomElement.contains(container)) {
+        rootDomElement.appendChild(container);
+      }
+      container.style.opacity = '1';
     },
-    hideLoadingScreen: (...args) => {
+    hide: () => {
+      if (!rootDomElement.contains(container)) {
+        return Promise.resolve();
+      }
       container.style.opacity = 0;
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -56,9 +73,16 @@ function createLoadingScreen(rootDomElement) {
           if (rootDomElement.contains(container)) {
             rootDomElement.removeChild(container);
           }
-          resolve(...args);
+          resolve();
         }, OPACITY_DURATION);
       });
+    },
+    updateProgress: (message, percent) => {
+      progressBar.style.display = 'block'; // Show progress bar when updating
+      p.textContent = percent !== undefined ? `${message} - ${percent}%` : message;
+      if (percent !== undefined) {
+        progressBar.value = percent;
+      }
     },
   };
 }

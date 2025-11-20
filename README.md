@@ -108,13 +108,17 @@ It also appends [`style`](https://developer.mozilla.org/en-US/docs/Web/HTML/Elem
 
 #### visualize(loadObj, assembly, furlTransformPromise)
 
+Visualize a 3D model by loading it from a promise-based data source. Manages loading screen internally.
+
 ##### Arguments
 
 |Name|Type|Required|Description|
 |----|----|--------|-----------|
-|`loadObj`|`function(): Promise.<string>`|`true`|Zero-argument function returning a `Promise` that resolves to [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file contents.|
+|`loadObj`|`function(): Promise.<string>`|`true`|Function that returns a `Promise` that resolves to [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file contents.|
 |`assembly`|[`string`]|`true`|Assembly of visualization. Must be one of `"WindTurbine"`, `"StatorMold"`, `"RotorMold"`, `"MagnetJig"`, or `"CoilWinder"`.|
 |`furlTransformPromise`|`Promise.<FurlTransform>`|`true` when `type` === `"WindTurbine"`, `false` otherwise.|When `assembly` === `"WindTurbine"`, the `Promise` must resolve to a `FurlTransform` object. See below table for details.|
+
+**Returns:** `undefined`
 
 ###### FurlTransform
 
@@ -134,6 +138,55 @@ It also appends [`style`](https://developer.mozilla.org/en-US/docs/Web/HTML/Elem
 |`transform.axis`|`Array.<number>`|`true`|Axis of rotation, three element array for x, y, and z axes.|
 |`transform.angle`|`number`|`true`|Angle of rotation (**in radians**).|
 
+#### render(objText, assembly, furlTransform)
+
+Render a 3D model directly from OBJ text data. Use this for streaming scenarios where you receive data progressively. Call `setProgress()` to update the loading screen before calling this method.
+
+**Example:**
+```javascript
+// Streaming usage pattern
+visualization.setProgress('Downloading model...', 0);
+// ... fetch chunks ...
+visualization.setProgress('Processing model...', 50);
+// ... process data ...
+visualization.render(objText, 'WindTurbine', furlTransform);
+```
+
+##### Arguments
+
+|Name|Type|Required|Description|
+|----|----|--------|-----------|
+|`objText`|`string`|`true`|[Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file contents.|
+|`assembly`|[`string`]|`true`|Assembly of visualization. Must be one of `"WindTurbine"`, `"StatorMold"`, `"RotorMold"`, `"MagnetJig"`, or `"CoilWinder"`.|
+|`furlTransform`|`FurlTransform`|`true` when `assembly` === `"WindTurbine"`, `false` otherwise.|When `assembly` === `"WindTurbine"`, must be a `FurlTransform` object. See below table for details.|
+
+**Returns:** `undefined`
+
+#### setProgress(message, percent)
+
+Update the loading screen with progress information. Automatically shows the loading screen if not already visible.
+
+##### Arguments
+
+|Name|Type|Required|Description|
+|----|----|--------|-----------|
+|`message`|`string`|`true`|Progress message to display.|
+|`percent`|`number`|`true`|Progress percentage (0-100).|
+
+**Returns:** `undefined`
+
+#### showError(message)
+
+Display an error screen with the specified message. Automatically hides the loading screen.
+
+##### Arguments
+
+|Name|Type|Required|Description|
+|----|----|--------|-----------|
+|`message`|`string`|`true`|Error message to display.|
+
+**Returns:** `undefined`
+
 #### resize(width, height)
 Resize visualization to specified `width` and `height`.
 
@@ -150,6 +203,14 @@ Resize visualization to specified `width` and `height`.
 Display tooltip if cursor hovers over part and update internal mouse coordinates.
 
 This method is debounced with a 10 millisecond wait time.
+
+**Note:** This method is exposed but not automatically attached to events. You must manually attach it to the window's `mousemove` event:
+
+```javascript
+window.addEventListener('mousemove', (event) => {
+  visualization.handleMouseMove(event);
+});
+```
 
 ##### Arguments
 

@@ -1,6 +1,5 @@
-export default function makeGroupParts(furlTransformPromise, getGroupConfigurations) {
-  return async (parts) => {
-    const furlTransform = await furlTransformPromise;
+export default function makeGroupParts(furlTransform, getGroupConfigurations) {
+  return (parts) => {
     const groupConfigurations = getGroupConfigurations({ furlTransform, parts });
     groupConfigurations.forEach((configuration) => {
       const { createGroup, partNames, configurePart } = configuration;
