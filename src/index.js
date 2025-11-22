@@ -84,6 +84,9 @@ class OpenAfpmCadVisualization {
   }
 
   setProgress(message, percent) {
+    if (this._appContainer) {
+      this._cleanUpVisualization();
+    }
     this._showLoadingScreen();
     this._updateProgress(message, percent);
   }
