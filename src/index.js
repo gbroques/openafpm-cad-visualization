@@ -92,6 +92,9 @@ class OpenAfpmCadVisualization {
   }
 
   showError(message) {
+    if (this._appContainer) {
+      this._cleanUpVisualization();
+    }
     this._hideLoadingScreen()
       .then(() => this._showErrorScreen(message));
   }
