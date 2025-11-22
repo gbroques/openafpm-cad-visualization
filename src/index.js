@@ -87,8 +87,11 @@ class OpenAfpmCadVisualization {
     if (this._appContainer) {
       this._cleanUpVisualization();
     }
-    this._showLoadingScreen();
-    this._updateProgress(message, percent);
+    this._hideErrorScreen()
+      .then(() => {
+        this._showLoadingScreen();
+        this._updateProgress(message, percent);
+      });
   }
 
   showError(message) {
