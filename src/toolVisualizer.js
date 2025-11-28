@@ -153,6 +153,8 @@ class ToolVisualizer {
   }
 
   explode(controller) {
+    if (!this._partsWithNonNegativeZMin) return;
+    
     const explode = controller.Explode;
     const explosionBaseFactor = explode * this._explosionFactor;
     const getExplosionAmountForChild = makeGetExplosionAmountForChild(
