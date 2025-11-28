@@ -64,10 +64,8 @@ class ToolVisualizer {
   /**
    * @see https://github.com/yomotsu/camera-controls
    */
-  createCameraControls(camera, domElement, onChange) {
+  createCameraControls(camera, domElement) {
     const controls = new CameraControls(camera, domElement);
-    controls.addEventListener('control', onChange);
-    controls.addEventListener('transitionstart', onChange);
     return controls;
   }
 

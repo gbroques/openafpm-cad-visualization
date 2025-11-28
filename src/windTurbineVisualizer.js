@@ -63,12 +63,10 @@ class WindTurbineVisualizer {
   /**
    * @see https://github.com/yomotsu/camera-controls
    */
-  createCameraControls(camera, domElement, onChange) {
+  createCameraControls(camera, domElement) {
     const controls = new CameraControls(camera, domElement);
     controls.maxDistance = 5000;
     controls.minDistance = 250;
-    controls.addEventListener('control', onChange);
-    controls.addEventListener('transitionstart', onChange);
     return controls;
   }
 

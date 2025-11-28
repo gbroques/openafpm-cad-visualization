@@ -121,15 +121,31 @@ class OpenAfpmCadVisualization {
     }
     this._setGuiContainerStyle();
     this._renderer.setSize(width, height);
-    this._render();
   }
 
   cleanUp() {
+    this._stopAnimationLoop();
     this._cleanUpVisualization();
     this._renderer.dispose();
   }
 
+  _startAnimationLoop() {
+    const animate = () => {
+      this._animationId = requestAnimationFrame(animate);
+      this._render();
+    };
+    animate();
+  }
+
+  _stopAnimationLoop() {
+    if (this._animationId) {
+      cancelAnimationFrame(this._animationId);
+      this._animationId = null;
+    }
+  }
+
   _setupScene(assembly) {
+    this._stopAnimationLoop();
     this._cleanUpVisualization();
     this._visualizer = assembly === 'WindTurbine'
       ? new WindTurbineVisualizer()
@@ -140,9 +156,9 @@ class OpenAfpmCadVisualization {
     this._cameraControls = this._visualizer.createCameraControls(
       this._camera,
       this._renderer.domElement,
-      () => this._render(),
     );
     this._clock = new THREE.Clock();
+    this._startAnimationLoop();
 
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
@@ -152,7 +168,6 @@ class OpenAfpmCadVisualization {
     const rotateCameraTo = ({ azimuthAngle, polarAngle }) => {
       const enableTransition = false;
       this._cameraControls.rotateTo(azimuthAngle, polarAngle, enableTransition);
-      this._render();
     };
     const faces = this._visualizer.getViewCubeFaces();
     this._viewCube = new ViewCube(this._camera, rotateCameraTo, faces);
@@ -257,7 +272,6 @@ class OpenAfpmCadVisualization {
     container.style.opacity = '1';
     this._cameraControls.update();
     this._isModelLoaded = true;
-    this._render();
   }
 
   _handleMouseMove(event) {
